@@ -1,0 +1,4 @@
+User-Agent: *
+Allow: /
+ 
+Sitemap: https://consultarcnpj.vercel.app/sitemap.xml
