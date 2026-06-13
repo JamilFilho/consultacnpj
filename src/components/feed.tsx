@@ -1,15 +1,10 @@
-/**
- * Trecho para o componente de rodapé (Server Component).
- *
- * Cole dentro do seu layout/footer existente.
- * O componente precisa ser async para usar await.
- */
-
 import Link from 'next/link'
 import { Card, CardDescription, CardTitle } from '@/components/ui/card'
 import { getGeneratedPageIds } from '@/lib/sitemap-tracker'
+import { unstable_noStore as noStore } from 'next/cache'
 
 export default async function FeedCNPJ() {
+  noStore()
   const lastFiveIds = (await getGeneratedPageIds()).slice(0, 5)
 
   return (
