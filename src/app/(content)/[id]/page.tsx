@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import CNPJFetcher from './cnpj-fetcher'
 import Loading from './load'
 import { registerGeneratedPage } from '@/lib/sitemap-tracker'
+import { notFound } from 'next/navigation'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -13,8 +14,18 @@ export async function generateStaticParams() {
   return []
 }
 
+/** Valida se o id é um CNPJ: exatamente 14 dígitos numéricos. */
+function isValidCNPJ(id: string): boolean {
+  return /^\d{14}$/.test(id)
+}
+
 export const generateMetadata = async ({ params }: PageProps) => {
   const { id } = await params
+
+  if (!isValidCNPJ(id)) {
+    return { title: 'Empresa' }
+  }
+
   const res = await fetch(`https://minhareceita.org/${id}`)
 
   if (!res.ok) {
@@ -30,7 +41,12 @@ export const generateMetadata = async ({ params }: PageProps) => {
 export default async function CNPJPage({ params }: PageProps) {
   const { id } = await params
 
-  // Persiste o ID no KV para o sitemap e rodapé — agora com await
+  // Rejeita qualquer path que não seja um CNPJ válido
+  if (!isValidCNPJ(id)) {
+    notFound()
+  }
+
+  // Persiste o CNPJ no KV para o sitemap e rodapé
   await registerGeneratedPage(id)
 
   return (
