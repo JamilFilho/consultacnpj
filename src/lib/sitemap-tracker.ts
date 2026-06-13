@@ -1,20 +1,22 @@
 /**
- * Sitemap tracker utilities — backed by Vercel KV (Redis).
+ * Sitemap tracker utilities — backed by Upstash Redis.
  *
- * Requires: npm install @vercel/kv
- * Env vars:  KV_REST_API_URL  e  KV_REST_API_TOKEN  (provisionadas automaticamente
- *            ao linkar um KV store no painel da Vercel).
+ * Requires: npm install @upstash/redis
+ * Env vars:
+ *   UPSTASH_REDIS_REST_URL    — disponível no painel do Upstash
+ *   UPSTASH_REDIS_REST_TOKEN  — disponível no painel do Upstash
  */
 
-import { kv } from '@vercel/kv'
+import { Redis } from '@upstash/redis'
 
+const redis = Redis.fromEnv()
 const KV_KEY = 'cnpj_visits'
 
 /**
  * Registra um CNPJ visitado usando score = timestamp para ordenação cronológica.
  */
 export async function registerGeneratedPage(id: string): Promise<void> {
-  await kv.zadd(KV_KEY, { score: Date.now(), member: id })
+  await redis.zadd(KV_KEY, { score: Date.now(), member: id })
 }
 
 /**
@@ -22,5 +24,5 @@ export async function registerGeneratedPage(id: string): Promise<void> {
  */
 export async function getGeneratedPageIds(): Promise<string[]> {
   // zrange com rev:true retorna do maior score (mais recente) para o menor
-  return kv.zrange(KV_KEY, 0, -1, { rev: true }) as Promise<string[]>
+  return redis.zrange(KV_KEY, 0, -1, { rev: true }) as Promise<string[]>
 }
