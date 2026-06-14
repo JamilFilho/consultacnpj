@@ -9,7 +9,7 @@ function formatCNPJ(id: string): string {
 
 export default async function FeedCNPJ() {
   noStore()
-  const lastFiveIds = (await getGeneratedPageIds()).slice(0, 5)
+  const lastFiveIds = (await getGeneratedPageIds()).slice(0, 10)
 
   return (
     <>
