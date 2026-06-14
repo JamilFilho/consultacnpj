@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Ads } from '@/components/ads'
 
 interface Props {
   data: CNPJData
@@ -68,6 +69,8 @@ export default function CNPJPageContent({ data }: Props) {
           </Button>
         </div>
       </header>
+
+      <Ads />
 
       <div className="space-y-6">
         <div className="space-y-2">

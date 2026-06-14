@@ -1,0 +1,46 @@
+{
+    "ads": [
+        {
+            "id": 1,
+            "title": "Planilha de precificação descomplicada",
+            "headline":"Descubra o verdadeiro custo de cada produto que você vende e pare de precificar no achismo. Aumente sua lucratividade e tome decisões mais assertivas no seu dia a dia.",
+            "image": "20260120at214349.jpeg",
+            "url": "/ads/planilha-precificacao"
+        },
+         {
+            "id": 2,
+            "title": "Do informal ao milhão",
+            "headline":"Como Transformar Seu Negócio Digital em uma Empresa Lucrativa e Protegida Legalmente - Mesmo Começando do Zero",
+            "image": "7202510_02_51.png",
+            "url": "/ads/do-informal-ao-milhao"
+        },
+        {
+            "id": 3,
+            "title": "Digital e-CNPJ A1",
+            "headline":"Garanta a identidade digital de sua empresa em transações eletrônicas com total segurança e valor jurídico",
+            "image": "31M7FAB5YOLAC.jpg",
+            "url": "/ads/certificado-digital-cnpj"
+        },
+        {
+            "id": 4,
+            "title": "Empreender com CNPJ: Reduza Impostos e Aumente Seus Lucros",
+            "headline":"Descubra como transformar seu negócio de prestação de serviços em uma máquina de crescimento e lucratividade com o CNPJ!",
+            "image": "51oxl2LUVALSL1000.jpg",
+            "url": "/ads/reduza-impostos"
+        },
+        {
+            "id": 5,
+            "title": "Manual do MEI",
+            "headline":"Descubra como empreender sendo um Micro Empreendedor Individual",
+            "image": "manual-do-mei.webp",
+            "url": "/ads/manual-do-mei"
+        },
+        {
+            "id": 5,
+            "title": "MEI de Sucesso",
+            "headline":"MEI regularizado, sem multas e sem contador: passo a passo completo.",
+            "image": "103d391020w21.webp",
+            "url": "/ads/mei-de-sucesso"
+        }
+    ]
+}
