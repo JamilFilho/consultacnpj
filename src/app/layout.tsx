@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "../styles/globals.css";
 import { Separator } from "@/components/ui/separator";
 import FeedCNPJ from "@/components/feed";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "BaseCNPJ | Dados oficiais da Receita Federal, ao alcance de todos.",
@@ -91,6 +92,7 @@ export default function RootLayout({
           </aside>
         </div>
       </body>
-</html>
+      <Analytics/>
+    </html>
   );
 }

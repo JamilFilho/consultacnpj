@@ -2,13 +2,13 @@ import { Suspense } from 'react'
 import CNPJFetcher from './cnpj-fetcher'
 import Loading from './load'
 import { registerGeneratedPage } from '@/lib/sitemap-tracker'
-import { notFound } from 'next/navigation'
+import { fetchCNPJ } from '@/lib/cnpj'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-export const revalidate = false
+export const dynamic = 'force-dynamic'
 
 export async function generateStaticParams() {
   return []
@@ -16,20 +16,23 @@ export async function generateStaticParams() {
 
 export const generateMetadata = async ({ params }: PageProps) => {
   const { id } = await params
-  const res = await fetch(`https://minhareceita.org/${id}`)
 
-  const data = await res.json()
-  
-  return {
-    title: data.razao_social || 'Empresa',
-    description: `Informações da empresa ${data.nome_fantasia || data.razao_social} - CNPJ: ${id}`,
+  try {
+    const data = await fetchCNPJ(id)
+    return {
+      title: data.razao_social || 'Empresa',
+      description: `Informações da empresa ${data.nome_fantasia || data.razao_social} - CNPJ: ${id}`,
+    }
+  } catch {
+    return {
+      title: 'Empresa não encontrada',
+      description: `Consulta de CNPJ: ${id}`,
+    }
   }
 }
 
 export default async function CNPJPage({ params }: PageProps) {
   const { id } = await params
-
-  // Persiste o CNPJ no KV para o sitemap e rodapé
   await registerGeneratedPage(id)
 
   return (

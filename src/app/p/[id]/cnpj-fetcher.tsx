@@ -1,32 +1,12 @@
-// app/[id]/cnpj-fetcher.tsx
 import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import CNPJPageContent from './cnpj-content'
-import { CNPJData } from './types'
-
-async function fetchCNPJ(id: string): Promise<CNPJData> {
-  const cleanId = id.replace(/\D/g, '')
-
-  const res = await fetch(`https://minhareceita.org/${cleanId}`, {
-    next: { revalidate: false },
-  })
-
-  if (!res.ok) {
-    throw new Error(
-      res.status === 404
-        ? 'CNPJ não encontrado. Verifique o número e tente novamente.'
-        : `Erro ao consultar CNPJ (status ${res.status}).`
-    )
-  }
-
-  return res.json()
-}
+import { fetchCNPJ } from '@/lib/cnpj'
 
 export default async function CNPJFetcher({ id }: { id: string }) {
-  let data: CNPJData
-
   try {
-    data = await fetchCNPJ(id)
+    const data = await fetchCNPJ(id) // React cache: reusa a request do generateMetadata
+    return <CNPJPageContent data={data} />
   } catch (err) {
     return (
       <div className="px-10 flex flex-col items-center justify-center h-screen">
@@ -40,6 +20,4 @@ export default async function CNPJFetcher({ id }: { id: string }) {
       </div>
     )
   }
-
-  return <CNPJPageContent data={data} />
 }
