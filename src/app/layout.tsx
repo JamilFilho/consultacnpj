@@ -1,25 +1,23 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
 import { Separator } from "@/components/ui/separator";
-import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
 import FeedCNPJ from "@/components/feed";
 
 export const metadata: Metadata = {
-  title: "Consultar CNPJ",
-  description: "Consulte o CNPJ de uma empresa e exporte os resultados em PDF. Insira o número do CNPJ para obter informações detalhadas sobre a empresa, incluindo nome, endereço, situação cadastral e atividades econômicas. Ideal para quem precisa de dados precisos e atualizados sobre empresas brasileiras.",
-  keywords: "consultar CNPJ MEI, CNPJ, consulta CNPJ, empresa Brasil, dados empresariais, Receita Federal",
+  title: "BaseCNPJ | Dados oficiais da Receita Federal, ao alcance de todos.",
+  description: "BaseCNPJ é a forma mais rápida de consultar empresas brasileiras. Razão social, situação cadastral, endereço, sócios e muito mais — tudo de graça, tudo oficial.",
+  keywords: "cnpj, consulta cnpj, busca cnpj, consultar cnpj, cnpj gratis, consulta cnpj gratuita, receita federal, dados cnpj, situacao cadastral, razao social, nome fantasia, cnpj online, verificar cnpj, checar cnpj, empresa cnpj, cnpj empresa, consulta empresa, dados empresa, cnpj ativo, cnpj inativo, socios empresa, quadro societario, cnae, endereco empresa, capital social, porte empresa, natureza juridica, consulta gratuita, base cnpj, basecnpj",
   openGraph: {
-    title: "Consultar CNPJ",
-    description: "Obtenha informações detalhadas de empresas brasileiras pelo CNPJ.",
-    url: "https://consultacnpj.app.vercel",
-    siteName: "Consultar CNPJ",
+    title: "BaseCNPJ",
+    description: "Dados oficiais da Receita Federal, ao alcance de todos.",
+    url: "https://basecnpj.vercel.app",
+    siteName: "BaseCNPJ",
     images: [
       {
-        url: "https://consultacnpj.app.vercel/og-image.png",
+        url: "https://basecnpj.vercel.app/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Consultar CNPJ",
+        alt: "BaseCNPJ",
       },
     ],
     locale: "pt_BR",
@@ -37,10 +35,10 @@ export default function RootLayout({
   return (
     <html lang="pt-br">
       <body className="m-0 p-0">
-        <div className="mx-auto print:hidden">
+        <div className="mx-auto">
           {children}
 
-          <aside className="grid grid-cols-3 gap-12 mx-auto py-6 px-12 mt-12 text-sm">
+          <aside className="print:hidden flex flex-col md:grid md:grid-cols-3 gap-12 mx-auto py-6 px-12 mt-12 text-sm">
             <section className="col-span-1 flex flex-col gap-8">
               <header>
                 <h4 className="font-semibold uppercase">Últimos CNPJs consultados</h4>
@@ -91,10 +89,6 @@ export default function RootLayout({
                   </ul>
             </section>
           </aside>
-        </div>
-
-        <div className="hidden print:block print:p-20 print:text-center print:text-black">
-          Para habilitar a impressão/exportação pdf, ative o modo premium
         </div>
       </body>
 </html>

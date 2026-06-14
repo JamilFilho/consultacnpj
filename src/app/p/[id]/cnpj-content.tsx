@@ -50,11 +50,11 @@ function formatCEP(cep: string): string {
 export default function CNPJPageContent({ data }: Props) {
   return (
     <>
-      <header className="mb-8 grid grid-cols-2 gap-2">
+      <header className="mb-8 flex flex-col md:grid md:grid-cols-2 gap-2">
         <div>
           <h1 className="text-2xl mb-2 font-bold">{data.razao_social}</h1>
         </div>
-        <div className="flex flex-row gap-2 justify-end">
+        <div className="print:hidden flex flex-row gap-2 justify-start md:justify-end">
           <Button asChild>
             <Link href="/">
               <Search />
@@ -130,7 +130,7 @@ export default function CNPJPageContent({ data }: Props) {
         </Card>
 
         {/* Cards de resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 print:grid-cols-3 gap-4">
           <Card className="p-6">
             <Building2 className="mb-4" />
             <p className="text-sm text-muted-foreground font-medium">Tipo de Empresa</p>

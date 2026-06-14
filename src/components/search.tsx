@@ -18,19 +18,19 @@ export default function Search() {
         return
     }
 
-    router.push(`/${cleaned}`)
+    router.push(`/p/${cleaned}`)
     }
 
     const formatCNPJ = (value: string) => {
-    const cleaned = value.replace(/\D/g, '')
-    if (cleaned.length <= 14) {
+        const cleaned = value.replace(/\D/g, '')
+        if (cleaned.length <= 14) {
+            return cleaned
+            .replace(/^(\d{2})(\d)/, '$1.$2')
+            .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+            .replace(/\.(\d{3})(\d)/, '.$1/$2')
+            .replace(/(\d{4})(\d)/, '$1-$2')
+        }
         return cleaned
-        .replace(/^(\d{2})(\d)/, '$1.$2')
-        .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-        .replace(/\.(\d{3})(\d)/, '.$1/$2')
-        .replace(/(\d{4})(\d)/, '$1-$2')
-    }
-    return cleaned
     }
 
     const handleCNPJChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +38,7 @@ export default function Search() {
     }
 
     return(
-        <form onSubmit={handleSearch} className="flex flex-row gap-2">
+        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-2">
             <InputGroup>
                 <InputGroupAddon>
                     <SearchIcon />
