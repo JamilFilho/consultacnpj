@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Building2, DollarSign, Landmark, Search, Printer } from 'lucide-react'
+import { Building2, DollarSign, Landmark, Search, Printer, MapPinned } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CNPJData } from './types'
 import {
@@ -16,7 +16,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Ads } from '@/components/ads'
+import Map from '@/components/map'
 
 interface Props {
   data: CNPJData
@@ -188,58 +197,82 @@ export default function CNPJPageContent({ data }: Props) {
 
         {/* Estabelecimento */}
         <Card>
-            <h3 className="px-6 text-lg font-semibold">Estabelecimento</h3>
-            <Separator />
-            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Tipo</p>
-                <p className="font-medium">{data.descricao_tipo_de_logradouro || '—'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Data de Início</p>
-                <p className="font-medium">
-                  {new Date(data.data_inicio_atividade).toLocaleDateString('pt-BR')}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Logradouro</p>
-                <p className="font-medium">
-                  {data.descricao_tipo_de_logradouro} {data.logradouro}, {data.numero}
-                  {data.complemento ? ` — ${data.complemento}` : ''}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Localização</p>
-                <p className="font-medium">
-                  {data.municipio}, {data.uf}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">CEP</p>
-                <p className="font-medium">{formatCEP(data.cep)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Telefone</p>
-                <p className="font-medium">{formatPhone(data.ddd_telefone_1)}</p>
-              </div>
-              <div className="md:col-span-2">
-                <p className="text-sm text-muted-foreground">Email</p>
-                {data.email ? (
-                  <a href={`mailto:${data.email}`} className="font-medium hover:underline">
-                    {data.email}
-                  </a>
-                ) : (
-                  <p className="font-medium">—</p>
-                )}
-              </div>
+          <div className="px-6 flex flex-row justify-between">
+            <h3 className="text-lg font-semibold">Estabelecimento</h3>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost">
+                  <MapPinned/>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <div className="hidden">
+                  <DialogTitle>Localização no mapa</DialogTitle>
+                </div>
+                <Map
+                  descricao_tipo_de_logradouro={data.descricao_tipo_de_logradouro}
+                  logradouro={data.logradouro}
+                  numero={data.numero}
+                  complemento={data.complemento}
+                  municipio={data.municipio}
+                  uf={data.uf}
+                  cep={data.cep}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <Separator />
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Tipo</p>
+              <p className="font-medium">{data.descricao_tipo_de_logradouro || '—'}</p>
             </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Data de Início</p>
+              <p className="font-medium">
+                {new Date(data.data_inicio_atividade).toLocaleDateString('pt-BR')}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Logradouro</p>
+              <p className="font-medium">
+                {data.descricao_tipo_de_logradouro} {data.logradouro}, {data.numero}
+                {data.complemento ? ` — ${data.complemento}` : ''}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Localização</p>
+              <p className="font-medium">
+                {data.municipio}, {data.uf}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">CEP</p>
+              <p className="font-medium">{formatCEP(data.cep)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Telefone</p>
+              <p className="font-medium">{formatPhone(data.ddd_telefone_1)}</p>
+            </div>
+            <div className="md:col-span-2">
+              <p className="text-sm text-muted-foreground">Email</p>
+              {data.email ? (
+                <a href={`mailto:${data.email}`} className="font-medium hover:underline">
+                  {data.email}
+                </a>
+              ) : (
+                <p className="font-medium">—</p>
+              )}
+            </div>
+          </div>
         </Card>
 
         {/* Atividade Principal */}
         <Card>
           <h3 className="px-6 text-lg font-semibold">Atividade Principal</h3>
           <Separator />
-          <div className="pt-6 px-6">
+          <div className="px-6">
             <Card className="bg-slate-50 dark:bg-slate-900/50 border-0">
               <CardContent>
                 <p className="font-medium">{data.cnae_fiscal_descricao}</p>
