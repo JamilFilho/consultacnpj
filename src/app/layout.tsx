@@ -3,6 +3,7 @@ import "../styles/globals.css";
 import { Separator } from "@/components/ui/separator";
 import FeedCNPJ from "@/components/feed";
 import { Analytics } from "@vercel/analytics/next";
+import { BlockAds } from "@/components/ads";
 
 export const metadata: Metadata = {
   title: "BaseCNPJ | Dados oficiais da Receita Federal, ao alcance de todos.",
@@ -40,15 +41,18 @@ export default function RootLayout({
           {children}
 
           <aside className="print:hidden flex flex-col md:grid md:grid-cols-3 gap-12 mx-auto py-6 px-12 mt-12 text-sm">
-            <section className="col-span-1 flex flex-col gap-8">
-              <header>
-                <h4 className="font-semibold uppercase">Últimos CNPJs consultados</h4>
-              </header>
+            <section className="col-span-1">
+              <div className="flex flex-col gap-8">
+                <header>
+                  <h4 className="font-semibold uppercase">Últimos CNPJs consultados</h4>
+                </header>
 
-              <div className="flex flex-col gap-4">
-                <FeedCNPJ />
+                <div className="flex flex-col gap-4">
+                  <FeedCNPJ />
+                </div>
               </div>
-              
+
+              <BlockAds />
             </section>
             <section className="col-span-2 flex flex-col gap-2">
               <h4 className="font-semibold uppercase">O que é um CNPJ?</h4>

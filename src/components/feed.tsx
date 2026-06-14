@@ -1,7 +1,15 @@
 import Link from 'next/link'
-import { Card, CardDescription, CardTitle } from '@/components/ui/card'
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item"
 import { getGeneratedPageIds } from '@/lib/sitemap-tracker'
 import { unstable_noStore as noStore } from 'next/cache'
+import { ExternalLink } from 'lucide-react'
 
 function formatCNPJ(id: string): string {
   return String(id).replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
@@ -16,11 +24,16 @@ export default async function FeedCNPJ() {
       {lastFiveIds.length > 0 && (
         <>
           {lastFiveIds.map((id) => (
-            <Link key={id} href={`/p/${id}`}>
-              <Card className="py-2 px-4 gap-2">
-                <CardTitle className="p-0 m-0">{formatCNPJ(id)}</CardTitle>
-              </Card>
-            </Link>
+            <Item key={id} variant="outline" asChild>
+              <Link href={`/p/${id}`}>
+                <ItemContent>
+                  <ItemDescription className="p-0 m-0">{formatCNPJ(id)}</ItemDescription>
+                </ItemContent>
+                <ItemActions>
+                  <ExternalLink className="size-4"/>
+                </ItemActions>
+              </Link>
+            </Item>
           ))}
         </>
       )}
