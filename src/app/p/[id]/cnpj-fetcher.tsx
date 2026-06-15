@@ -5,8 +5,8 @@ import { fetchCNPJ } from '@/lib/cnpj'
 
 export default async function CNPJFetcher({ id }: { id: string }) {
   try {
-    const data = await fetchCNPJ(id) // React cache: reusa a request do generateMetadata
-    return <CNPJPageContent data={data} />
+    const data = await fetchCNPJ(id) // react cache: sem nova requisição
+    return <CNPJPageContent data={data} description={data.descricao} />
   } catch (err) {
     return (
       <div className="px-10 flex flex-col items-center justify-center h-screen">

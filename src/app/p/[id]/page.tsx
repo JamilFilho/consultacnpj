@@ -8,20 +8,21 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
-export const dynamic = 'force-dynamic'
+export const dynamicParams = true  // permite rotas não listadas em generateStaticParams
+export const revalidate = false    // uma vez gerada, a página não revalida (SSG permanente)
 
 export async function generateStaticParams() {
-  return []
+  return [] // nenhuma página pré-gerada no build; tudo é gerado sob demanda
 }
 
-export const generateMetadata = async ({ params }: PageProps) => {
+export async function generateMetadata({ params }: PageProps) {
   const { id } = await params
 
   try {
-    const data = await fetchCNPJ(id)
+    const data = await fetchCNPJ(id) // react cache: reutiliza a mesma requisição da página
     return {
       title: data.razao_social || 'Empresa',
-      description: `Informações da empresa ${data.nome_fantasia || data.razao_social} - CNPJ: ${id}`,
+      description: data.descricao,
     }
   } catch {
     return {

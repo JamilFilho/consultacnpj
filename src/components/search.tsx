@@ -51,7 +51,7 @@ export default function Search() {
     }
 
     return(
-        <form onSubmit={handleSearch} className="flex flex-col gap-2">
+        <form onSubmit={handleSearch} className="flex flex-col">
             <div className="w-full flex flex-col md:flex-row gap-2">
                 <InputGroup>
                     <InputGroupAddon>

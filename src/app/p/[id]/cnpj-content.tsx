@@ -1,10 +1,11 @@
 "use client"
 
 import Link from 'next/link'
+import React from 'react'
 import { Card, CardContent, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Building2, DollarSign, Landmark, Search, Printer, MapPinned } from 'lucide-react'
+import { Building2, DollarSign, Landmark, Search, Printer, MapPinned, ChevronsUpDown, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CNPJData } from './types'
 import {
@@ -21,6 +22,7 @@ import Map from '@/components/map'
 
 interface Props {
   data: CNPJData
+  description: string
 }
 
 interface RegimeTributario {
@@ -49,7 +51,10 @@ function formatCEP(cep: string): string {
   return cep.replace(/(\d{5})(\d{3})/, '$1-$2')
 }
 
-export default function CNPJPageContent({ data }: Props) {
+export default function CNPJPageContent({ data, description }: Props) {
+  const [loading, setLoading] = React.useState<boolean>(false)
+  const [error, setError] = React.useState<string | null>(null)
+
   return (
     <>
       <header className="mb-8 flex flex-col md:grid md:grid-cols-2 gap-2">
@@ -70,8 +75,18 @@ export default function CNPJPageContent({ data }: Props) {
           </Button>
         </div>
       </header>
+      
+      <div className="print:mb-12 flex flex-col gap-4">
+       {description}
+
+       <span className="text-xs text-zinc-500 flex flex-row gap-2 items-center">
+        <Info className="size-3"/>
+        Descrição gerada com IA
+      </span>
+      </div>
 
       <Ads />
+
 
       <div className="space-y-6">
         <div className="space-y-2">
@@ -121,14 +136,14 @@ export default function CNPJPageContent({ data }: Props) {
                 { label: 'Data de exclusão do simples', value: data.data_exclusao_do_simples },
               ]
                // Filtra itens que possuem data válida e garante ao TypeScript que `value` é string
-               .filter((item): item is { label: string; value: string } => Boolean(item.value))
-                .sort((a, b) => new Date(a.value).getTime() - new Date(b.value).getTime())
-                .map(item => (
-                  <TableRow key={item.label}>
-                    <TableCell className="font-medium">{item.label}</TableCell>
-                    <TableCell className="text-right">{new Date(item.value as string).toLocaleDateString('pt-BR')}</TableCell>
-                  </TableRow>
-                ))}
+              .filter((item): item is { label: string; value: string } => Boolean(item.value))
+              .sort((a, b) => new Date(a.value).getTime() - new Date(b.value).getTime())
+              .map(item => (
+                <TableRow key={item.label}>
+                  <TableCell className="font-medium">{item.label}</TableCell>
+                  <TableCell className="text-right">{new Date(item.value as string).toLocaleDateString('pt-BR')}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </Card>
@@ -234,8 +249,23 @@ export default function CNPJPageContent({ data }: Props) {
               <p className="font-medium">{formatCEP(data.cep)}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Telefone</p>
-              <p className="font-medium">{formatPhone(data.ddd_telefone_1)}</p>
+              <p className="text-sm text-muted-foreground">Telefone(s)</p>
+              <p className="font-medium">
+                {data.uf !== "EX" ? (
+                  <a href={`tel:+55${data.ddd_telefone_1}`}>
+                   {formatPhone(data.ddd_telefone_1)}
+                  </a>
+                ) : (
+                  <>
+                    {formatPhone(data.ddd_telefone_1)}
+                  </>
+                )}
+                {data.ddd_telefone_2.length > 0 && data.uf !== "EX" && (
+                  <a href={`tel:+55${data.ddd_telefone_2}`}>
+                    &nbsp;—&nbsp;{formatPhone(data.ddd_telefone_2)}
+                  </a>
+                )}
+              </p>
             </div>
             <div className="md:col-span-2">
               <p className="text-sm text-muted-foreground">Email</p>
