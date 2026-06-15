@@ -15,6 +15,8 @@ export async function generateStaticParams() {
   return [] // nenhuma página pré-gerada no build; tudo é gerado sob demanda
 }
 
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params
 
