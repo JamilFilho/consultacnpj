@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import FeedCNPJ from "@/components/feed";
 import { Analytics } from "@vercel/analytics/next";
 import { BlockAds } from "@/components/ads";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "BaseCNPJ | Dados oficiais da Receita Federal, ao alcance de todos.",
@@ -40,7 +41,7 @@ export default function RootLayout({
         <div className="mx-auto">
           {children}
 
-          <aside className="print:hidden flex flex-col md:grid md:grid-cols-3 gap-12 mx-auto py-6 px-12 mt-12 text-sm">
+          <aside className="print:hidden border-y border-border flex flex-col md:grid md:grid-cols-3 gap-12 mx-auto py-12 px-12 mt-12 text-sm">
             <section className="col-span-1">
               <div className="flex flex-col gap-8">
                 <header>
@@ -94,6 +95,24 @@ export default function RootLayout({
                   </ul>
             </section>
           </aside>
+
+          <footer className="py-2 px-6 flex flex-row justify-between">
+            <span className="text-sm">
+              basecnpj.vercel.app &copy; 2026
+            </span>
+
+            <ul className="flex flex-row gap-2 items-center justify-center">
+              <li>
+                <Link 
+                  href="/politica-de-privacidade"
+                  title="Política de Privacidade"
+                  className="text-sm"
+                >
+                  Política de Privacidade
+                </Link>
+              </li>
+            </ul>
+          </footer>
         </div>
       </body>
       <Analytics/>
