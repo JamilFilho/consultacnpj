@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Building2, DollarSign, Landmark, Search, Printer, MapPinned } from 'lucide-react'
@@ -16,14 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { Ads } from '@/components/ads'
 import Map from '@/components/map'
 
@@ -199,31 +191,21 @@ export default function CNPJPageContent({ data }: Props) {
         <Card>
           <div className="px-6 flex flex-row justify-between">
             <h3 className="text-lg font-semibold">Estabelecimento</h3>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost">
-                  <MapPinned/>
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <div className="hidden">
-                  <DialogTitle>Localização no mapa</DialogTitle>
-                </div>
-                <Map
-                  descricao_tipo_de_logradouro={data.descricao_tipo_de_logradouro}
-                  logradouro={data.logradouro}
-                  numero={data.numero}
-                  complemento={data.complemento}
-                  municipio={data.municipio}
-                  uf={data.uf}
-                  cep={data.cep}
-                />
-              </DialogContent>
-            </Dialog>
           </div>
 
           <Separator />
           <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="col-span-2 -mt-2 mb-4">
+              <Map
+                descricao_tipo_de_logradouro={data.descricao_tipo_de_logradouro}
+                logradouro={data.logradouro}
+                numero={data.numero}
+                complemento={data.complemento}
+                municipio={data.municipio}
+                uf={data.uf}
+                cep={data.cep}
+              />
+            </div>
             <div>
               <p className="text-sm text-muted-foreground">Tipo</p>
               <p className="font-medium">{data.descricao_tipo_de_logradouro || '—'}</p>
@@ -284,7 +266,7 @@ export default function CNPJPageContent({ data }: Props) {
           </div>
 
           {data.cnaes_secundarios.length > 0 && (
-            <div className="my-6">
+            <div className="mb-6">
               <Separator />
               <p className="px-6 text-sm font-semibold text-muted-foreground my-3">
                 Atividades Secundárias ({data.cnaes_secundarios.length})
@@ -309,7 +291,7 @@ export default function CNPJPageContent({ data }: Props) {
         <Card>
           <h3 className="text-lg font-semibold px-6">Sócios ({data.qsa.length})</h3>
           <Separator />
-          <div className="py-4 px-6 space-y-2">
+          <div className="py-4 px-6 space-y-4">
             {data.qsa.length === 0 ? (
               <p className="text-sm text-muted-foreground py-2">
                 Nenhum sócio registrado.
