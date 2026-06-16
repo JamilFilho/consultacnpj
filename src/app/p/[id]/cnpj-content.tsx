@@ -17,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Ads } from '@/components/ads'
 import Map from '@/components/map'
 
 interface Props {
@@ -84,9 +83,6 @@ export default function CNPJPageContent({ data, description }: Props) {
         Descrição gerada com IA
       </span>
       </div>
-
-      <Ads />
-
 
       <div className="space-y-6">
         <div className="space-y-2">

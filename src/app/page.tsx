@@ -1,15 +1,10 @@
 import { DatabaseSearch } from 'lucide-react'
 import Search from '@/components/search'
-import { MiniAds } from '@/components/ads'
 
 export default function CNPJPage() {
   
   return (
     <div className="h-dvh md:h-screen flex-col items-center justify-center bg-zinc-50 -mb-12">
-      <div className="absolute top-10 w-full flex items-center justify-center z-10">
-        <MiniAds />
-      </div>
-
       <section className="relative px-10 md:px-0 md:w-2/3 mx-auto h-full flex flex-col justify-center items-start gap-4">
           <header className="my-8 md:my-12 flex flex-col gap-2">
               <DatabaseSearch className="h-8 w-8" />

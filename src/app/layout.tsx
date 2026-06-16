@@ -3,7 +3,6 @@ import "../styles/globals.css";
 import { Separator } from "@/components/ui/separator";
 import FeedCNPJ from "@/components/feed";
 import { Analytics } from "@vercel/analytics/next";
-import { BlockAds } from "@/components/ads";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -52,8 +51,6 @@ export default function RootLayout({
                   <FeedCNPJ />
                 </div>
               </div>
-
-              <BlockAds />
             </section>
             <section className="col-span-2 flex flex-col gap-2">
               <h4 className="font-semibold uppercase">O que é um CNPJ?</h4>
