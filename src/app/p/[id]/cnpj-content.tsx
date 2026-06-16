@@ -75,13 +75,13 @@ export default function CNPJPageContent({ data, description }: Props) {
         </div>
       </header>
       
-      <div className="print:mb-12 flex flex-col gap-4">
-       {description}
+      <div className="mb-12 flex flex-col gap-4">
+        {description}
 
-       <span className="text-xs text-zinc-500 flex flex-row gap-2 items-center">
-        <Info className="size-3"/>
-        Descrição gerada com IA
-      </span>
+        <span className="text-xs text-zinc-500 flex flex-row gap-2 items-center">
+          <Info className="size-3"/>
+          Descrição gerada com IA
+        </span>
       </div>
 
       <div className="space-y-6">
