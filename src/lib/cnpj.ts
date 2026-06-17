@@ -162,19 +162,17 @@ export const fetchCNPJ = cache(
         data.qsa.map(
           async socio => {
             const empresasRelacionadas =
-              await getEmpresasDoSocio(
-                socio
-              )
+              await getEmpresasDoSocio(socio)
+
+            // Remove null entries and ensure the returned array matches the expected type EmpresaRelacionada[]
+            const empresasFiltradas = empresasRelacionadas.filter(
+              (empresa): empresa is NonNullable<typeof empresa> =>
+                !!empresa && !!empresa.cnpj && empresa.cnpj !== data.cnpj
+            )
 
             return {
               ...socio,
-              empresasRelacionadas:
-                empresasRelacionadas.filter(
-                  empresa =>
-                    empresa?.cnpj &&
-                    empresa.cnpj !==
-                      data.cnpj
-                ),
+              empresasRelacionadas: empresasFiltradas,
             }
           }
         )
