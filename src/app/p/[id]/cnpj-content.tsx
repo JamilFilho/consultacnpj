@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 import React from 'react'
-import { Card, CardContent, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Building2, DollarSign, Landmark, Search, Printer, MapPinned, ChevronsUpDown, Info } from 'lucide-react'
+import { Building2, DollarSign, Landmark, Search, Printer, Info, ExternalLink, AlertTriangle, ArrowUpDown, ChevronsUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CNPJData } from './types'
 import {
@@ -18,6 +18,21 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import Map from '@/components/map'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { getNaturezaJuridica } from '@/components/natureza-juridica'
+import { getCnpjMatriz } from '@/lib/cnpj-matriz'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import { Item } from '@/components/ui/item'
+
 
 interface Props {
   data: CNPJData
@@ -33,6 +48,12 @@ interface RegimeTributario {
 
 function formatCNPJ(cnpj: string): string {
   return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+}
+
+function formatCPF(cpf: string): string {
+  const clean = cpf.replace(/[^\d*]/g, '')
+  if (clean.length !== 11) return cpf
+  return clean.replace(/(.{3})(.{3})(.{3})(.{2})/, '$1.$2.$3-$4')
 }
 
 function formatPhone(raw: string): string {
@@ -54,11 +75,151 @@ export default function CNPJPageContent({ data, description }: Props) {
   const [loading, setLoading] = React.useState<boolean>(false)
   const [error, setError] = React.useState<string | null>(null)
 
+  // identificador_matriz_filial: 1 = matriz, 2 = filial
+  const ehMatriz = data.identificador_matriz_filial === 1
+  const cnpjMatriz = !ehMatriz ? getCnpjMatriz(data.cnpj) : null
+
+  // situacao_especial cobre casos como falência, recuperação judicial,
+  // liquidação extrajudicial etc. Vem como texto livre da Receita;
+  // string vazia ou ausente significa que não há situação especial registrada.
+  const temSituacaoEspecial = Boolean(data.situacao_especial && data.situacao_especial.trim().length > 0);
+
+  // Análise societária
+  const sociosPF = data.qsa.filter(
+    socio => socio.cnpj_cpf_do_socio.includes('*')
+  )
+
+  const sociosPJ = data.qsa.filter(
+    socio => !socio.cnpj_cpf_do_socio.includes('*')
+  )
+
+  const socioMaisAntigo =
+    data.qsa.length > 0
+      ? [...data.qsa].sort(
+          (a, b) =>
+            new Date(a.data_entrada_sociedade).getTime() -
+            new Date(b.data_entrada_sociedade).getTime()
+        )[0]
+      : null
+
+  const socioMaisRecente =
+    data.qsa.length > 0
+      ? [...data.qsa].sort(
+          (a, b) =>
+            new Date(b.data_entrada_sociedade).getTime() -
+            new Date(a.data_entrada_sociedade).getTime()
+        )[0]
+      : null
+
+  const dataMaisAntiga =
+    socioMaisAntigo?.data_entrada_sociedade
+
+  const quantidadeSociosMaisAntigos =
+    dataMaisAntiga
+      ? data.qsa.filter(
+          socio =>
+            socio.data_entrada_sociedade ===
+            dataMaisAntiga
+        ).length
+      : 0
+
+  const todosEntraramMesmaData =
+    quantidadeSociosMaisAntigos === data.qsa.length
+
+  const anosDesdeUltimaAlteracao =
+    socioMaisRecente
+      ? (Date.now() -
+          new Date(
+            socioMaisRecente.data_entrada_sociedade
+          ).getTime()) /
+        (1000 * 60 * 60 * 24 * 365)
+      : 0
+
+  const idadeEmpresa =
+    (Date.now() -
+      new Date(
+        data.data_inicio_atividade
+      ).getTime()) /
+    (1000 * 60 * 60 * 24 * 365)
+
+  let estabilidade = 'Não disponível'
+
+  if (socioMaisRecente) {
+    if (
+      idadeEmpresa < 1 &&
+      todosEntraramMesmaData
+    ) {
+      estabilidade = 'Empresa recém-constituída'
+    } else if (anosDesdeUltimaAlteracao >= 5) {
+      estabilidade = 'Muito estável'
+    } else if (anosDesdeUltimaAlteracao >= 2) {
+      estabilidade = 'Estável'
+    } else if (anosDesdeUltimaAlteracao >= 1) {
+      estabilidade = 'Alteração recente'
+    } else {
+      estabilidade = 'Alta rotatividade'
+    }
+  }
+
+  let concentracaoSocietaria = ''
+
+  if (data.qsa.length === 1) {
+    concentracaoSocietaria = 'Sócio único'
+  } else if (data.qsa.length <= 3) {
+    concentracaoSocietaria = 'Sociedade simples'
+  } else if (data.qsa.length <= 5) {
+    concentracaoSocietaria = 'Sociedade diversificada'
+  } else {
+    concentracaoSocietaria =
+      'Estrutura societária ampliada'
+  }
+
+  const administradores = data.qsa.filter(
+    socio =>
+      socio.qualificacao_socio
+        .toLowerCase()
+        .includes('administrador')
+  )
+
+  const faixasEtarias = data.qsa.reduce(
+    (acc, socio) => {
+      acc[socio.faixa_etaria] =
+        (acc[socio.faixa_etaria] || 0) + 1
+
+      return acc
+    },
+    {} as Record<string, number>
+  )
+
+  const faixaPredominante =
+    Object.entries(faixasEtarias).sort(
+      (a, b) => b[1] - a[1]
+    )[0]?.[0]
+
+  const descricaoEstabilidade: Record<
+    string,
+    string
+  > = {
+    'Empresa recém-constituída':
+      'Empresa aberta há menos de 12 meses. Ainda não há histórico suficiente para avaliar a estabilidade do quadro societário.',
+    'Muito estável':
+      'O quadro societário não apresenta alterações há mais de 5 anos.',
+    'Estável':
+      'O quadro societário não apresenta alterações recentes, com a última mudança ocorrida entre 2 e 5 anos atrás.',
+    'Alteração recente':
+      'Foi identificada uma alteração no quadro societário entre 1 e 2 anos atrás.',
+    'Alta rotatividade':
+      'Foi identificada uma alteração societária nos últimos 12 meses.'
+  }
+
   return (
     <>
       <header className="mb-8 flex flex-col md:grid md:grid-cols-2 gap-2">
         <div>
-          <h1 className="text-2xl mb-2 font-bold">{data.razao_social}</h1>
+          <div className="flex flex-row items-center gap-2 mb-2 flex-wrap">
+            <h1 className="text-2xl font-bold">{data.razao_social}</h1>
+          </div>
+          
         </div>
         <div className="print:hidden flex flex-row gap-2 justify-start md:justify-end">
           <Button asChild>
@@ -112,6 +273,21 @@ export default function CNPJPageContent({ data, description }: Props) {
               <p>{data.descricao_motivo_situacao_cadastral}</p>
             )}
           </Card>
+
+          {temSituacaoEspecial && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Situação especial registrada: {data.situacao_especial}</AlertTitle>
+              <AlertDescription>
+                {data.data_situacao_especial
+                  ? `Registrada em ${new Date(data.data_situacao_especial).toLocaleDateString('pt-BR')}. `
+                  : ''}
+                Este é um evento informado pela Receita Federal e pode indicar processo de
+                falência, recuperação judicial ou liquidação. Recomenda-se cautela e verificação
+                adicional antes de fechar negócios com esta empresa.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <Card className="py-0">
@@ -143,17 +319,32 @@ export default function CNPJPageContent({ data, description }: Props) {
             </TableBody>
           </Table>
         </Card>
-
         {/* Cards de resumo */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 print:grid-cols-3 gap-4">
           <Card className="p-6">
             <Building2 className="mb-4" />
             <p className="text-sm text-muted-foreground font-medium">Tipo de Empresa</p>
-            <p className="text-base font-semibold mt-1">{data.porte}</p>
+            <p className="text-base font-semibold mt-1">
+              {data.opcao_pelo_mei ? (
+                <>MEI</>
+              ) : (
+                <>{data.porte}</>
+              )}
+            </p>
           </Card>
 
           <Card className="p-6">
-            <Landmark className="mb-4" />
+            <div className="mb-4 flex flex-row items-center justify-between">
+              <Landmark />
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="size-4"/>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{getNaturezaJuridica(data.codigo_natureza_juridica)}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
             <p className="text-sm text-muted-foreground font-medium">Natureza Jurídica</p>
             <p className="text-base font-semibold mt-1">{data.natureza_juridica}</p>
           </Card>
@@ -189,7 +380,11 @@ export default function CNPJPageContent({ data, description }: Props) {
                     <TableCell>{item.forma_de_tributacao}</TableCell>
                     <TableCell className="text-center">{item.quantidade_de_escrituracoes}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {item.cnpj_da_scp ?? "—"}
+                      {item.cnpj_da_scp ? (
+                        <Link href={`/p/${item.cnpj_da_scp}`}>
+                          {item.cnpj_da_scp}
+                        </Link>
+                      ):("—")}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -201,7 +396,21 @@ export default function CNPJPageContent({ data, description }: Props) {
         {/* Estabelecimento */}
         <Card>
           <div className="px-6 flex flex-row justify-between">
-            <h3 className="text-lg font-semibold">Estabelecimento</h3>
+            <div className="flex flex-row items-center gap-2">
+              <h3 className="text-lg font-semibold">Estabelecimento</h3>
+              <Badge variant={ehMatriz ? 'default' : 'secondary'}>
+                {data.descricao_identificador_matriz_filial}
+              </Badge>
+            </div>
+            {!ehMatriz && cnpjMatriz && (
+              <Link
+                href={`/p/${cnpjMatriz}`}
+                className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 decoration-dotted inline-flex items-center gap-1"
+              >
+                Ver matriz ({formatCNPJ(cnpjMatriz)})
+                <ExternalLink className="size-3.5" />
+              </Link>
+            )}
           </div>
 
           <Separator />
@@ -292,25 +501,147 @@ export default function CNPJPageContent({ data, description }: Props) {
           </div>
 
           {data.cnaes_secundarios.length > 0 && (
-            <div className="mb-6">
+            <Collapsible>
               <Separator />
-              <p className="px-6 text-sm font-semibold text-muted-foreground my-3">
-                Atividades Secundárias ({data.cnaes_secundarios.length})
-              </p>
-              <Separator />
-              <div className="pt-4 -mb-4 px-6 space-y-2">
-                {data.cnaes_secundarios.map((atividade) => (
-                  <div
-                    key={atividade.codigo}
-                    className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg"
-                  >
-                    <p className="text-sm">{atividade.descricao}</p>
-                    <p className="text-xs text-muted-foreground">Código: {atividade.codigo}</p>
+              <CollapsibleTrigger asChild>
+                <Button className="w-full flex flex-row items-center justify-between px-6 text-sm font-semibold text-muted-foreground mt-3" variant="ghost">
+                  Atividades Secundárias ({data.cnaes_secundarios.length})
+                  <ChevronsUpDown className="size-4"/>
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="mt-3">
+                  <Separator />
+                  <div className="pt-4 px-6 space-y-2">
+                    {data.cnaes_secundarios.map((atividade) => (
+                      <div
+                        key={atividade.codigo}
+                        className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg"
+                      >
+                        <p className="text-sm">{atividade.descricao}</p>
+                        <p className="text-xs text-muted-foreground">Código: {atividade.codigo}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           )}
+        </Card>
+
+        {/* Análise Societária */}
+
+        <Card>
+          <h3 className="text-lg font-semibold px-6">
+            Análise Societária
+          </h3>
+
+          <Separator />
+          {/* <div className="px-6 flex flex-row items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Concentração societária
+            </p>
+
+            <p className="font-semibold">
+              {concentracaoSocietaria}
+            </p>
+          </div>
+          <Separator /> */}
+
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Estrutura Societária
+              </p>
+
+              <p className="font-semibold">
+                {sociosPF.length} Pessoa(s) Física(s)
+              </p>
+
+              <p className="font-semibold">
+                {sociosPJ.length} Pessoa(s) Jurídica(s)
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Administração
+              </p>
+
+              <p className="font-semibold">
+                {administradores.length} administrador(es)
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Estabilidade
+              </p>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant={
+                      estabilidade === 'Alta rotatividade'
+                        ? 'destructive'
+                        : 'default'
+                    }
+                    className="cursor-help"
+                  >
+                    {estabilidade}
+                  </Badge>
+                </TooltipTrigger>
+
+                <TooltipContent className="max-w-xs">
+                  <p>
+                    {descricaoEstabilidade[
+                      estabilidade
+                    ]}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
+            {socioMaisAntigo && (
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Sócio mais antigo
+                </p>
+
+                <p className="font-semibold">
+                  {new Date(
+                    socioMaisAntigo.data_entrada_sociedade
+                  ).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+            )}
+
+            {socioMaisRecente && (
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Última alteração societária
+                </p>
+
+                <p className="font-semibold">
+                  {new Date(
+                    socioMaisRecente.data_entrada_sociedade
+                  ).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+            )}
+
+            {faixaPredominante && (
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Faixa etária predominante
+                </p>
+
+                <p className="font-semibold">
+                  {faixaPredominante}
+                </p>
+              </div>
+            )}
+          </div>
         </Card>
 
         {/* Sócios */}
@@ -329,7 +660,16 @@ export default function CNPJPageContent({ data, description }: Props) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm text-muted-foreground">Nome</p>
-                        <p className="font-semibold">{socio.nome_socio}</p>
+                        {!todosEntraramMesmaData &&
+                          socioMaisAntigo?.data_entrada_sociedade ===
+                            socio.data_entrada_sociedade && (
+                            <Badge variant="secondary" className="my-2">
+                              Sócio mais antigo
+                            </Badge>
+                        )}
+                        <p className="font-semibold">
+                          {socio.nome_socio}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Qualificação</p>
@@ -337,7 +677,18 @@ export default function CNPJPageContent({ data, description }: Props) {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">CPF/CNPJ</p>
-                        <p className="font-mono text-sm">{socio.cnpj_cpf_do_socio}</p>
+                        <p className="font-mono text-sm">
+                          {socio.cnpj_cpf_do_socio.length === 14 ? (
+                            <Link href={`/p/${socio.cnpj_cpf_do_socio}`} className="underline underline-offset-4 decoration-dotted flex flex-row gap-2 items-center">
+                              {formatCNPJ(socio.cnpj_cpf_do_socio)}
+                              <ExternalLink className="size-4"/>
+                            </Link>
+                          ):(
+                            <>
+                              {formatCPF(socio.cnpj_cpf_do_socio)}
+                            </>
+                          )}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Data de Entrada</p>
@@ -351,6 +702,38 @@ export default function CNPJPageContent({ data, description }: Props) {
                       </div>
                     </div>
                   </CardContent>
+                  
+                  {socio.empresasRelacionadas &&
+                    socio.empresasRelacionadas.length >
+                      0 && (
+                      <CardFooter className="flex flex-col items-start gap-3">
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Faz parte do quadro societário
+                          </p>
+                        </div>
+
+                        <div className="w-full flex flex-wrap gap-2">
+                          {socio.empresasRelacionadas.map(
+                            empresa => (
+                              <Item
+                                key={empresa.cnpj}
+                                variant="outline"
+                              >
+                                <Link
+                                  href={`/p/${empresa.cnpj}`}
+                                  title={empresa.nome_fantasia || empresa.razao_social}
+                                  className="w-full flex flex-row justify-between"
+                                >
+                                  <span>{empresa.nome_fantasia || empresa.razao_social}</span>
+                                  <span>{formatCNPJ(empresa.cnpj)}</span>
+                                </Link>
+                              </Item>
+                            )
+                          )}
+                        </div>
+                      </CardFooter>
+                  )}
                 </Card>
               ))
             )}

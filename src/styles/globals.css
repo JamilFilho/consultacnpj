@@ -123,3 +123,70 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Static Pages */
+
+.page h1,
+.page h2,
+.page h3,
+.page h4,
+.page h5,
+.page h6 {
+  @apply font-bold my-6;
+}
+
+.page h1 {
+  @apply text-4xl;
+}
+
+.page h2 {
+  @apply text-2xl;
+}
+
+.page h3 {
+  @apply text-xl;
+}
+
+.page h4 {
+  @apply text-lg;
+}
+
+.page h5 {
+  @apply text-base;
+}
+
+.page h6 {
+  @apply text-base uppercase;
+}
+
+.page hr {
+  @apply my-4;
+}
+
+.page p {
+  @apply text-base my-2;
+}
+
+.page ul {
+  @apply px-8 my-6 list-disc space-y-4;
+}
+
+.page a {
+  @apply font-medium underline underline-offset-4 decoration-dotted;
+}
+
+.page table {
+  @apply w-full my-12;
+
+  thead {
+    @apply text-left border-b;
+
+    th {
+      @apply py-4;
+    }
+  }
+
+  td {
+    @apply py-2 border-b;
+  }
+}

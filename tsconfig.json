@@ -30,6 +30,6 @@
     "**/*.mts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
-  ],
+, "src/app/(pages)/politica-de-privacidade/page.mdx"  ],
   "exclude": ["node_modules"]
 }

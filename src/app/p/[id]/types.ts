@@ -18,7 +18,7 @@ export interface CNPJSocio {
 export interface CNPJData {
   uf: string
   cep: string
-  qsa: CNPJSocio[]
+  qsa: CNPJSocioComEmpresas[]
   cnpj: string
   pais: string | null
   email: string | null
@@ -67,4 +67,15 @@ export interface CNPJData {
   descricao_tipo_de_logradouro: string
   descricao_motivo_situacao_cadastral: string
   descricao_identificador_matriz_filial: string
+}
+
+export interface EmpresaRelacionada {
+  cnpj: string
+  razao_social: string
+  nome_fantasia: string
+}
+
+export interface CNPJSocioComEmpresas
+  extends CNPJSocio {
+  empresasRelacionadas?: EmpresaRelacionada[]
 }
