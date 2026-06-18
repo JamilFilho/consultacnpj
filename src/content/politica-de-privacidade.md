@@ -1,14 +1,14 @@
-# Política de Privacidade — BaseCNPJ
+# Política de Privacidade — CNPJHub
 
 **Última atualização:** 15 de junho de 2025
 
-Esta Política de Privacidade descreve como o **BaseCNPJ** (`https://basecnpj.vercel.app`) coleta, utiliza e protege as informações dos seus usuários. Ao utilizar este site, você concorda com os termos descritos abaixo.
+Esta Política de Privacidade descreve como o **CNPJHub** (`https://cnpjhub.app`) coleta, utiliza e protege as informações dos seus usuários. Ao utilizar este site, você concorda com os termos descritos abaixo.
 
 ---
 
 ## 1. Quem somos
 
-O BaseCNPJ é um serviço de consulta de dados públicos de empresas brasileiras pelo CNPJ. Não coletamos cadastros, não exigimos login e não armazenamos dados pessoais identificáveis dos usuários.
+O CNPJHub é um serviço de consulta de dados públicos de empresas brasileiras pelo CNPJ. Não coletamos cadastros, não exigimos login e não armazenamos dados pessoais identificáveis dos usuários.
 
 ---
 
@@ -54,7 +54,7 @@ Esta Política de Privacidade será atualizada com antecedência quando essa int
 
 ## 3. Dados que **não** coletamos
 
-O BaseCNPJ **não**:
+O CNPJHub **não**:
 
 - Exige cadastro ou criação de conta
 - Armazena o histórico de CNPJs consultados pelos usuários
@@ -74,7 +74,7 @@ Você pode configurar seu navegador para bloquear ou alertar sobre cookies de te
 
 ## 5. Bases legais (LGPD)
 
-O BaseCNPJ opera em conformidade com a **Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD)**. As bases legais que amparam o tratamento de dados neste site são:
+O CNPJHub opera em conformidade com a **Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD)**. As bases legais que amparam o tratamento de dados neste site são:
 
 | Dado/Finalidade | Base legal (LGPD) |
 |---|---|

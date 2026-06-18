@@ -1,14 +1,14 @@
-# Termos de Uso — BaseCNPJ
+# Termos de Uso — CNPJHub
 
 **Última atualização:** 17 de junho de 2026
 
-Bem-vindo ao **BaseCNPJ** (`https://basecnpj.vercel.app`). Ao acessar ou utilizar este site, você concorda com os termos e condições descritos a seguir. Se você não concorda com estes termos, recomendamos que não utilize o serviço.
+Bem-vindo ao **CNPJHub** (`https://cnpjhub.app`). Ao acessar ou utilizar este site, você concorda com os termos e condições descritos a seguir. Se você não concorda com estes termos, recomendamos que não utilize o serviço.
 
 ---
 
 ## 1. Sobre o serviço
 
-O BaseCNPJ é uma ferramenta gratuita de consulta de dados públicos de empresas brasileiras a partir do número de CNPJ. As informações exibidas são obtidas a partir de bases públicas oficiais e podem incluir descrições geradas com auxílio de inteligência artificial, conforme detalhado na seção 4.
+O CNPJHub é uma ferramenta gratuita de consulta de dados públicos de empresas brasileiras a partir do número de CNPJ. As informações exibidas são obtidas a partir de bases públicas oficiais e podem incluir descrições geradas com auxílio de inteligência artificial, conforme detalhado na seção 4.
 
 O serviço é fornecido "como está" (*as is*), sem garantias de disponibilidade contínua, exatidão absoluta ou adequação a uma finalidade específica.
 
@@ -16,13 +16,13 @@ O serviço é fornecido "como está" (*as is*), sem garantias de disponibilidade
 
 ## 2. Natureza pública e gratuita do serviço
 
-O acesso ao BaseCNPJ é gratuito e não requer cadastro, login ou fornecimento de dados pessoais para realizar consultas. O serviço pode, no futuro, exibir publicidade de terceiros (Google AdSense) sem custo adicional para o usuário, conforme descrito em nossa [Política de Privacidade](/politica-de-privacidade).
+O acesso ao CNPJHub é gratuito e não requer cadastro, login ou fornecimento de dados pessoais para realizar consultas. O serviço pode, no futuro, exibir publicidade de terceiros (Google AdSense) sem custo adicional para o usuário, conforme descrito em nossa [Política de Privacidade](/politica-de-privacidade).
 
 ---
 
 ## 3. Uso aceitável
 
-Ao utilizar o BaseCNPJ, você se compromete a:
+Ao utilizar o CNPJHub, você se compromete a:
 
 - Utilizar o serviço apenas para fins lícitos
 - Não tentar burlar mecanismos de segurança, como o sistema de verificação anti-bot (Cloudflare Turnstile)
@@ -36,7 +36,7 @@ Reservamo-nos o direito de bloquear o acesso de usuários ou IPs que violem esta
 
 ## 4. Exatidão das informações e uso de inteligência artificial
 
-As informações de CNPJ exibidas no BaseCNPJ são extraídas de bases de dados públicas oficiais (como a Receita Federal do Brasil) e podem estar sujeitas a desatualizações, erros de origem ou indisponibilidade temporária.
+As informações de CNPJ exibidas no CNPJHub são extraídas de bases de dados públicas oficiais (como a Receita Federal do Brasil) e podem estar sujeitas a desatualizações, erros de origem ou indisponibilidade temporária.
 
 Algumas descrições de empresas exibidas no site são geradas com auxílio de modelos de inteligência artificial (via OpenRouter) com base nos dados públicos disponíveis. Essas descrições têm caráter **meramente informativo e complementar**, podendo conter imprecisões, e **não substituem** a consulta aos documentos oficiais ou aos órgãos competentes (Receita Federal, Juntas Comerciais, etc.).
 
@@ -46,7 +46,7 @@ Algumas descrições de empresas exibidas no site são geradas com auxílio de m
 
 ## 5. Propriedade intelectual
 
-O layout, design, código-fonte, marca e identidade visual do BaseCNPJ são de propriedade de seus criadores e protegidos por leis de propriedade intelectual. Os dados públicos de CNPJ exibidos pertencem ao domínio público e são de titularidade dos respectivos órgãos governamentais que os disponibilizam.
+O layout, design, código-fonte, marca e identidade visual do CNPJHub são de propriedade de seus criadores e protegidos por leis de propriedade intelectual. Os dados públicos de CNPJ exibidos pertencem ao domínio público e são de titularidade dos respectivos órgãos governamentais que os disponibilizam.
 
 É proibida a cópia, reprodução ou distribuição não autorizada do código, design ou estrutura do site.
 
@@ -54,7 +54,7 @@ O layout, design, código-fonte, marca e identidade visual do BaseCNPJ são de p
 
 ## 6. Limitação de responsabilidade
 
-Na máxima extensão permitida pela legislação aplicável, o BaseCNPJ e seus responsáveis não serão responsabilizados por:
+Na máxima extensão permitida pela legislação aplicável, o CNPJHub e seus responsáveis não serão responsabilizados por:
 
 - Danos diretos, indiretos, incidentais ou consequenciais decorrentes do uso ou da impossibilidade de uso do site
 - Indisponibilidade temporária ou permanente do serviço
@@ -65,7 +65,7 @@ Na máxima extensão permitida pela legislação aplicável, o BaseCNPJ e seus r
 
 ## 7. Serviços de terceiros
 
-O BaseCNPJ utiliza os seguintes serviços de terceiros para seu funcionamento:
+O CNPJHub utiliza os seguintes serviços de terceiros para seu funcionamento:
 
 - **Vercel** — hospedagem e analytics
 - **Cloudflare Turnstile** — verificação de segurança
@@ -78,7 +78,7 @@ O uso desses serviços está sujeito também aos termos e políticas próprios d
 
 ## 8. Disponibilidade e alterações no serviço
 
-Podemos, a qualquer momento e sem aviso prévio, modificar, suspender ou descontinuar total ou parcialmente o BaseCNPJ, incluindo funcionalidades, layout ou disponibilidade de dados, sem que isso gere direito a indenização.
+Podemos, a qualquer momento e sem aviso prévio, modificar, suspender ou descontinuar total ou parcialmente o CNPJHub, incluindo funcionalidades, layout ou disponibilidade de dados, sem que isso gere direito a indenização.
 
 ---
 
