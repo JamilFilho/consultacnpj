@@ -8,7 +8,7 @@ export default function CNPJPage() {
       <section className="relative px-10 md:px-0 md:w-2/3 mx-auto h-full flex flex-col justify-center items-start gap-4">
           <header className="my-8 md:my-12 flex flex-col gap-2">
               <DatabaseSearch className="h-8 w-8" />
-              <h1 className="text-4xl font-bold">BaseCNPJ</h1>
+              <h1 className="text-4xl font-bold">CNPJ<span className="text-orange-500">Hub</span></h1>
               <p className="text-lg text-muted-foreground">Qualquer CNPJ. Qualquer hora. De graça.</p>
           </header>
 

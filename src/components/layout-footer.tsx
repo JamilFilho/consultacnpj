@@ -62,7 +62,7 @@ export function LayoutAside({ feed }: { feed: ReactNode }) {
 
     <footer className="py-2 px-6 flex flex-col-reverse md:flex-row justify-between">
         <span className="text-center my-2 md:my-0 md:text-left text-sm">
-            <strong>basecnpj</strong>.vercel.app &copy; 2026
+            <strong>CNPJ</strong>Hub &copy; 2026 - Desenvolvido por HUBLab
         </span>
 
         <ul className="flex flex-row gap-4 items-center justify-center text-sm *:hover:underline *:decoration-dotted *:underline-offset-4 p-2 md:p-0">

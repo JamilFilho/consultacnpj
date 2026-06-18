@@ -635,8 +635,8 @@ export default function GrafoRelacoes({
   }
 
   return (
-    <Card className="overflow-hidden">
-      <div className="px-6 flex flex-row items-center justify-between flex-wrap gap-2">
+    <Card className="p-0 overflow-hidden gap-0">
+      <div className="py-4 px-6 flex flex-row items-center justify-between flex-wrap gap-2">
         <div>
           <h3 className="text-lg font-semibold">
             Malha de relações
@@ -710,7 +710,7 @@ export default function GrafoRelacoes({
         <svg
           ref={svgRef}
           viewBox={`${-LARGURA_BASE / 2} ${-ALTURA_BASE / 2} ${LARGURA_BASE} ${ALTURA_BASE}`}
-          className="w-full h-full bg-slate-50 dark:bg-slate-950 cursor-grab active:cursor-grabbing"
+          className="w-full h-full bg-slate-50 cursor-grab active:cursor-grabbing"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
@@ -938,7 +938,7 @@ export default function GrafoRelacoes({
         <span className="flex flex-row items-center gap-1.5">
           <Building2 className="size-3.5 text-slate-500" /> Empresa
         </span>
-        <span className="ml-auto">
+        <span className="ml-auto print:hidden">
           Clique em um nó para expandir a rede
         </span>
       </div>
