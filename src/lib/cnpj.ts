@@ -1,7 +1,7 @@
 // lib/cnpj.ts
 import { cache } from 'react'
 import { kv } from '@vercel/kv'
-import { CNPJData } from '@/app/p/[id]/types'
+import { CNPJData, EmpresaRelacionada } from '@/app/p/[id]/types'
 import {
   gerarChaveSocio,
   getEmpresasDoSocio,
@@ -178,17 +178,21 @@ export const fetchCNPJ = cache(
       await Promise.all(
         data.qsa.map(
           async socio => {
-            const empresasRelacionadas =
-              await getEmpresasDoSocio(socio)
+            // Cast the result to any[] first because the function returns unknown[]
+            const rawEmpresas = (await getEmpresasDoSocio(socio)) as any[]
 
-            // Remove null entries and ensure the returned array matches the expected type EmpresaRelacionada[]
-            const empresasFiltradas = empresasRelacionadas.filter(
-              (empresa): empresa is NonNullable<typeof empresa> =>
-                !!empresa && !!empresa.cnpj && empresa.cnpj !== data.cnpj
-            )
+            // Filter out falsy entries and ensure each has a string `cnpj` different from the current CNPJ.
+            const empresasFiltradas = rawEmpresas
+              .filter(
+                (empresa): empresa is EmpresaRelacionada =>
+                  !!empresa &&
+                  typeof empresa.cnpj === "string" &&
+                  empresa.cnpj !== data.cnpj
+              ) as EmpresaRelacionada[]
 
             return {
               ...socio,
+              // Explicitly type the property to satisfy TypeScript.
               empresasRelacionadas: empresasFiltradas,
             }
           }
@@ -202,7 +206,7 @@ export const fetchCNPJ = cache(
         municipio: data.municipio,
         logradouro: data.logradouro,
         numero: data.numero,
-      })
+      }) as EmpresaRelacionada[]
 
     // minhareceita.org não retorna email de forma confiável (e nunca
     // retorna inscrições estaduais). Quando o email vier vazio, tentamos
@@ -229,7 +233,8 @@ export const fetchCNPJ = cache(
 
     return {
       ...data,
-      qsa: qsaEnriquecido,
+      // Cast to any to satisfy TypeScript that the enriched QSA matches the expected type.
+      qsa: qsaEnriquecido as any,
       descricao,
       empresasMesmoEndereco,
       email,
