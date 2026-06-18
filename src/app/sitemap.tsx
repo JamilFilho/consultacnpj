@@ -2,7 +2,7 @@ import { getGeneratedPageIds } from '@/lib/sitemap-tracker'
 
 export default async function sitemap() {
   const ids = await getGeneratedPageIds()
-  const baseUrl = 'https://basecnpj.vercel.app'
+  const baseUrl = 'https://cnpjhub.app'
 
   const routes = [
     {

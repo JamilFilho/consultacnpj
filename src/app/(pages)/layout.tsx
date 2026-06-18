@@ -9,7 +9,7 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
         <Link href="/" title="Página Inicial">
             <h1 className="font-bold lowercase flex flex-row items-center gap-2 text-base">
                 <DatabaseSearch className="size-5"/>
-                baseCNPJ
+                <span>CNPJ<span className="text-orange-500">Hub</span></span>
             </h1>
         </Link>
 

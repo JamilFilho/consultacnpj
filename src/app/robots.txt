@@ -1,4 +1,4 @@
 User-Agent: *
 Allow: /
  
-Sitemap: https://basecnpj.vercel.app/sitemap.xml
+Sitemap: https://cnpjhub.app/sitemap.xml
