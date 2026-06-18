@@ -7,10 +7,18 @@ import {
   getEmpresasDoSocio,
 } from './socios'
 import { gerarChaveEndereco, getEmpresasMesmoEndereco } from './enderecos'
+import {
+  getOrFetchEnrichment,
+  InscricaoEstadual,
+} from './enrichment'
+import { getRelacoes, RelacaoGrafo } from './grafo'
 
 export type CNPJDataWithDescription =
   CNPJData & {
     descricao: string
+    email: string | null
+    inscricoesEstaduais: InscricaoEstadual[] | null
+    relacoesGrafo: RelacaoGrafo[] | null
   }
 
 async function generateDescription(
@@ -196,16 +204,38 @@ export const fetchCNPJ = cache(
         numero: data.numero,
       })
 
-    const descricao =
-      await getOrCreateDescription(
-        data
-      )
+    // minhareceita.org não retorna email de forma confiável (e nunca
+    // retorna inscrições estaduais). Quando o email vier vazio, tentamos
+    // enriquecer via cnpja.com / cnpj.ws, respeitando o rate limit dessas
+    // APIs e cacheando o resultado para não gastar cota repetidamente.
+    const emailDaMinhaReceita =
+      (data as { email?: string | null }).email ?? null
+
+    // Descrição (IA), enriquecimento (email/IE) e relações (grafo) são
+    // independentes entre si — disparamos em paralelo para não somar
+    // latência de rede sequencialmente.
+    const [descricao, enrichment, relacoesGrafo] =
+      await Promise.all([
+        getOrCreateDescription(data),
+        getOrFetchEnrichment(
+          data.cnpj,
+          emailDaMinhaReceita
+        ),
+        getRelacoes(data.cnpj),
+      ])
+
+    const email =
+      emailDaMinhaReceita || enrichment.email
 
     return {
       ...data,
       qsa: qsaEnriquecido,
       descricao,
-      empresasMesmoEndereco
+      empresasMesmoEndereco,
+      email,
+      inscricoesEstaduais:
+        enrichment.inscricoesEstaduais,
+      relacoesGrafo,
     }
   }
 )

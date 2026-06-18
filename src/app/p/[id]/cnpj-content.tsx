@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator'
 import { Building2, DollarSign, Landmark, Search, Printer, Info, ExternalLink, AlertTriangle, ArrowUpDown, ChevronsUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CNPJData } from './types'
+import { RelacaoGrafo } from '@/lib/grafo'
 import {
   Table,
   TableBody,
@@ -32,10 +33,14 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { Item } from '@/components/ui/item'
+import GrafoRelacoes from '@/components/grafoRelacoes'
 
 
 interface Props {
-  data: CNPJData
+  data: CNPJData & {
+    email?: string | null
+    relacoesGrafo?: RelacaoGrafo[] | null
+  }
   description: string
 }
 
@@ -704,7 +709,7 @@ export default function CNPJPageContent({ data, description }: Props) {
                         <p className="text-sm text-muted-foreground">CPF/CNPJ</p>
                         <p className="font-mono text-sm">
                           {socio.cnpj_cpf_do_socio.length === 14 ? (
-                            <Link href={`/p/${socio.cnpj_cpf_do_socio}`} className="underline underline-offset-4 decoration-dotted flex flex-col md:flex-row gap-2 items-center">
+                            <Link href={`/p/${socio.cnpj_cpf_do_socio}`} className="underline underline-offset-4 decoration-dotted flex flex-row gap-2 items-center">
                               {formatCNPJ(socio.cnpj_cpf_do_socio)}
                               <ExternalLink className="size-4"/>
                             </Link>
@@ -734,7 +739,7 @@ export default function CNPJPageContent({ data, description }: Props) {
                       <CardFooter className="flex flex-col items-start gap-3">
                         <div>
                           <p className="text-sm text-muted-foreground">
-                            Faz parte do quadro societário
+                            Também faz parte do quadro societário das empresas
                           </p>
                         </div>
 
@@ -748,9 +753,9 @@ export default function CNPJPageContent({ data, description }: Props) {
                                 <Link
                                   href={`/p/${empresa.cnpj}`}
                                   title={empresa.nome_fantasia || empresa.razao_social}
-                                  className="w-full flex flex-row justify-between"
+                                  className="w-full flex flex-col md:flex-row justify-between gap-2"
                                 >
-                                  <span>{empresa.nome_fantasia || empresa.razao_social}</span>
+                                  <span className="font-medium">{empresa.nome_fantasia || empresa.razao_social}</span>
                                   <span>{formatCNPJ(empresa.cnpj)}</span>
                                 </Link>
                               </Item>
@@ -764,6 +769,13 @@ export default function CNPJPageContent({ data, description }: Props) {
             )}
           </div>
         </Card>
+
+        {/* Malha de relações (grafo) */}
+        <GrafoRelacoes
+          cnpjRaiz={data.cnpj}
+          razaoSocialRaiz={data.nome_fantasia || data.razao_social}
+          relacoesIniciais={data.relacoesGrafo ?? null}
+        />
       </div>
     </>
   )
