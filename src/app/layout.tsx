@@ -4,6 +4,7 @@ import FeedCNPJ from "@/components/feed";
 import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "@/lib/providers";
 import { LayoutAside } from "@/components/layout-footer";
+import Head from "next/head";
 
 export const metadata: Metadata = {
   title: "CNPJHub | Dados oficiais da Receita Federal, ao alcance de todos.",
@@ -36,6 +37,11 @@ export default function RootLayout({
   
   return (
     <html lang="pt-br">
+      <Head>
+        <meta name="google-adsense-account" content="ca-pub-8744567957048944" />
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8744567957048944" crossOrigin="anonymous" />
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      </Head>
       <body className="m-0 p-0">
         <div className="mx-auto">
           <Providers>

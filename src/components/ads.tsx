@@ -1,164 +1,24 @@
-"use client"
+import React, { useEffect } from 'react';
 
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemActions,
-  ItemMedia,
-  ItemTitle,
-  ItemHeader,
-} from "@/components/ui/item"
-import { useEffect, useState } from 'react'
-import Image from 'next/image'
-import { BadgeCheck, ChevronRightIcon } from "lucide-react"
-
-interface Ad {
-  id: number
-  title: string
-  headline: string
-  image: string
-  url: string
+interface AdComponentProps {
+  adSlot: string;
+  adFormat?: string;
+  adLayout?: string;
 }
 
-export function Ads() {
-  const [ad, setAd] = useState<Ad | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
+const AdComponent: React.FC<AdComponentProps> = ({ adSlot, adFormat = 'auto', adLayout = '' }) => {
   useEffect(() => {
-    fetch('/data/ads.json')
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
-      .then(data => {
-        const ads: Ad[] = data.ads
-        if (ads?.length) {
-          setAd(ads[Math.floor(Math.random() * ads.length)])
-        } else {
-          setError('ads array vazio')
-        }
-      })
-      .catch(err => setError(err.message))
-  }, [])
-
-  if (error) return <p className="text-xs text-red-500 my-4">Ads error: {error}</p>
-  if (!ad) return null
+    try {
+      (window as any).adsbygoogle = (window as any).adsbygoogle || [];
+      (window as any).adsbygoogle.push({});
+    } catch (e) {
+      console.error('Error loading ads:', e);
+    }
+  }, []);
 
   return (
-     <Item variant="outline" asChild className="my-12 print:hidden">
-        <a href={ad.url} target="_blank" rel="noopener noreferrer sponsored">
-            <ItemMedia variant="image">
-                <Image 
-                    src={`/ads/${ad.image}`}
-                    alt={ad.title}
-                    width={100}
-                    height={100}
-                />
-            </ItemMedia>
-            
-            <ItemContent>
-                <ItemDescription>Patrocinado</ItemDescription>
-                <ItemTitle className="line-clamp-1">{ad.title}</ItemTitle>
-                <ItemDescription>{ad.headline}</ItemDescription>
-            </ItemContent>
-            
-            <ItemContent className="flex-none text-center">
-            </ItemContent>
-        </a>
-        </Item>
-  )
-}
+    <ins className="adsbygoogle" style={{ display: 'block' }} data-ad-client="ca-pub-8744567957048944" data-ad-slot={adSlot} data-ad-format={adFormat} data-ad-layout={adLayout}></ins>
+  );
+};
 
-export function MiniAds() {
-  const [ad, setAd] = useState<Ad | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetch('/data/ads.json')
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
-      .then(data => {
-        const ads: Ad[] = data.ads
-        if (ads?.length) {
-          setAd(ads[Math.floor(Math.random() * ads.length)])
-        } else {
-          setError('ads array vazio')
-        }
-      })
-      .catch(err => setError(err.message))
-  }, [])
-
-  if (error) return <p className="text-xs text-red-500 my-4">Ads error: {error}</p>
-  if (!ad) return null
-
-  return (
-    <Item variant="outline" size="sm" asChild className="px-6 md:w-2/3 print:hidden">
-        <a href={ad.url} target="_blank" rel="noopener noreferrer sponsored">
-            <ItemMedia>
-                <BadgeCheck className="size-4" />
-            </ItemMedia>
-            
-            <ItemContent>
-                <ItemTitle>{ad.headline}</ItemTitle>
-            </ItemContent>
-            
-            <ItemActions>
-                <ChevronRightIcon className="size-4" />
-            </ItemActions>
-        </a>
-    </Item>
-  )
-}
-
-export function BlockAds() {
-  const [ad, setAd] = useState<Ad | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetch('/data/ads.json')
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
-      .then(data => {
-        const ads: Ad[] = data.ads
-        if (ads?.length) {
-          setAd(ads[Math.floor(Math.random() * ads.length)])
-        } else {
-          setError('ads array vazio')
-        }
-      })
-      .catch(err => setError(err.message))
-  }, [])
-
-  if (error) return <p className="text-xs text-red-500 my-4">Ads error: {error}</p>
-  if (!ad) return null
-
-  return (
-     <Item variant="outline" asChild className="mt-12 print:hidden">
-        <a href={ad.url} target="_blank" rel="noopener noreferrer sponsored">
-            <ItemHeader>
-                <Image 
-                  src={`/ads/${ad.image}`}
-                  alt={ad.title}
-                  width={228}
-                  height={228}
-                  className="aspect-square w-full rounded-sm object-cover"
-                />
-            </ItemHeader>
-            
-            <ItemContent>
-                <ItemDescription>Patrocinado</ItemDescription>
-                <ItemTitle className="line-clamp-1">{ad.title}</ItemTitle>
-                <ItemDescription>{ad.headline}</ItemDescription>
-            </ItemContent>
-            
-            <ItemContent className="flex-none text-center">
-            </ItemContent>
-        </a>
-        </Item>
-  )
-}
+export default AdComponent;

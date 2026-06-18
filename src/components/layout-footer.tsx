@@ -3,6 +3,8 @@
 import { type ReactNode } from "react";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+import Script from "next/script"
+import AdComponent from "./ads";
 
 export function LayoutAside({ feed }: { feed: ReactNode }) {
   return (
@@ -13,6 +15,12 @@ export function LayoutAside({ feed }: { feed: ReactNode }) {
                 <header>
                 <h4 className="font-semibold uppercase">Últimos CNPJs consultados</h4>
                 </header>
+
+                <AdComponent 
+                    adSlot="1310364191"
+                    adFormat="fluid"
+                    adLayout="-fs+3f+89-ag-6u"
+                />
 
                 <div className="flex flex-col gap-4">
                     {feed}
