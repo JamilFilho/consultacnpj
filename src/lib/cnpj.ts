@@ -1,3 +1,4 @@
+// lib/cnpj.ts
 import { cache } from 'react'
 import { kv } from '@vercel/kv'
 import { CNPJData } from '@/app/p/[id]/types'
@@ -5,6 +6,7 @@ import {
   gerarChaveSocio,
   getEmpresasDoSocio,
 } from './socios'
+import { gerarChaveEndereco, getEmpresasMesmoEndereco } from './enderecos'
 
 export type CNPJDataWithDescription =
   CNPJData & {
@@ -117,6 +119,13 @@ export const fetchCNPJ = cache(
       }
     )
 
+    const enderecoKey = gerarChaveEndereco(data)
+
+    await kv.sadd(
+      `endereco:${enderecoKey}`,
+      data.cnpj
+    )
+
     const operations: Promise<any>[] =
       []
 
@@ -178,6 +187,15 @@ export const fetchCNPJ = cache(
         )
       )
 
+    const empresasMesmoEndereco =
+      await getEmpresasMesmoEndereco({
+        cnpj: data.cnpj,
+        uf: data.uf,
+        municipio: data.municipio,
+        logradouro: data.logradouro,
+        numero: data.numero,
+      })
+
     const descricao =
       await getOrCreateDescription(
         data
@@ -187,6 +205,7 @@ export const fetchCNPJ = cache(
       ...data,
       qsa: qsaEnriquecido,
       descricao,
+      empresasMesmoEndereco
     }
   }
 )

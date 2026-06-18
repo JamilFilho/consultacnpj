@@ -1,3 +1,5 @@
+// lib/socios.ts
+
 import crypto from 'crypto'
 import { kv } from '@vercel/kv'
 import { CNPJSocio } from '@/app/p/[id]/types'

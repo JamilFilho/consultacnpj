@@ -67,6 +67,7 @@ export interface CNPJData {
   descricao_tipo_de_logradouro: string
   descricao_motivo_situacao_cadastral: string
   descricao_identificador_matriz_filial: string
+  empresasMesmoEndereco?: EmpresaRelacionada[]
 }
 
 export interface EmpresaRelacionada {

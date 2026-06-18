@@ -72,9 +72,6 @@ function formatCEP(cep: string): string {
 }
 
 export default function CNPJPageContent({ data, description }: Props) {
-  const [loading, setLoading] = React.useState<boolean>(false)
-  const [error, setError] = React.useState<string | null>(null)
-
   // identificador_matriz_filial: 1 = matriz, 2 = filial
   const ehMatriz = data.identificador_matriz_filial === 1
   const cnpjMatriz = !ehMatriz ? getCnpjMatriz(data.cnpj) : null
@@ -395,7 +392,7 @@ export default function CNPJPageContent({ data, description }: Props) {
 
         {/* Estabelecimento */}
         <Card>
-          <div className="px-6 flex flex-row justify-between">
+          <div className="px-6 flex flex-col md:flex-row md:justify-between">
             <div className="flex flex-row items-center gap-2">
               <h3 className="text-lg font-semibold">Estabelecimento</h3>
               <Badge variant={ehMatriz ? 'default' : 'secondary'}>
@@ -483,6 +480,34 @@ export default function CNPJPageContent({ data, description }: Props) {
               )}
             </div>
           </div>
+
+          {data.empresasMesmoEndereco &&
+            data.empresasMesmoEndereco.length > 0 && (
+              <>
+              <Separator />
+              <div className="mt-4">
+                <h4 className="font-medium mb-2">
+                  Empresas neste endereço
+                </h4>
+
+                <div className="flex flex-wrap gap-2">
+                  {data.empresasMesmoEndereco.map(
+                    (empresa) => (
+                      <Item
+                        key={empresa.cnpj}
+                        variant="outline"
+                      >
+                        <Link href={`/p/${empresa.cnpj}`}>
+                          {empresa.nome_fantasia ||
+                            empresa.razao_social}
+                        </Link>
+                      </Item>
+                    )
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </Card>
 
         {/* Atividade Principal */}
@@ -679,7 +704,7 @@ export default function CNPJPageContent({ data, description }: Props) {
                         <p className="text-sm text-muted-foreground">CPF/CNPJ</p>
                         <p className="font-mono text-sm">
                           {socio.cnpj_cpf_do_socio.length === 14 ? (
-                            <Link href={`/p/${socio.cnpj_cpf_do_socio}`} className="underline underline-offset-4 decoration-dotted flex flex-row gap-2 items-center">
+                            <Link href={`/p/${socio.cnpj_cpf_do_socio}`} className="underline underline-offset-4 decoration-dotted flex flex-col md:flex-row gap-2 items-center">
                               {formatCNPJ(socio.cnpj_cpf_do_socio)}
                               <ExternalLink className="size-4"/>
                             </Link>
