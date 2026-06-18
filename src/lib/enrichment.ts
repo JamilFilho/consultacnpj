@@ -4,6 +4,7 @@ import { kv } from '@vercel/kv'
 export type EnrichmentData = {
   email: string | null
   inscricoesEstaduais: InscricaoEstadual[] | null
+  suframa: SuframaData[] | null
   fonte: 'cnpja' | 'cnpj_ws' | null
 }
 
@@ -13,9 +14,44 @@ export type InscricaoEstadual = {
   ativo: boolean
 }
 
+export type IncentivoSuframa = {
+  tributo: string
+  beneficio: string
+  finalidade: string
+  fundamentoLegal: string
+}
+
+type CnpjaIncentive = {
+  tribute: string
+  benefit: string
+  purpose: string
+  basis: string
+}
+
+type CnpjaSuframa = {
+  number: string
+  since: string
+  approved: boolean
+  approvalDate: string
+  status: {
+    text: string
+  }
+  incentives?: CnpjaIncentive[]
+}
+
+export type SuframaData = {
+  numero: string
+  desde: string
+  aprovada: boolean
+  dataAprovacao: string
+  status: string
+  incentivos: IncentivoSuframa[]
+}
+
 const EMPTY_ENRICHMENT: EnrichmentData = {
   email: null,
   inscricoesEstaduais: null,
+  suframa: null,
   fonte: null,
 }
 
@@ -67,6 +103,7 @@ type CnpjaEmail = {
 }
 
 type CnpjaResponse = {
+  suframa?: CnpjaSuframa[]
   emails?: CnpjaEmail[]
 }
 
@@ -93,15 +130,33 @@ async function fetchFromCnpja(
     const data: CnpjaResponse = await res.json()
 
     const primaryEmail = data.emails?.[0]?.address ?? null
+    const suframa =
+      data.suframa?.map(item => ({
+        numero: item.number,
+        desde: item.since,
+        aprovada: item.approved,
+        dataAprovacao: item.approvalDate,
+        status: item.status.text,
+        incentivos:
+          item.incentives?.map(incentivo => ({
+            tributo: incentivo.tribute,
+            beneficio: incentivo.benefit,
+            finalidade: incentivo.purpose,
+            fundamentoLegal: incentivo.basis,
+          })) ?? [],
+      })) ?? null
 
     // cnpja não retorna inscrições estaduais no endpoint público gratuito,
     // então deixamos null aqui; se a conta tiver acesso a esse dado no
     // futuro, basta mapear aqui.
-    if (!primaryEmail) return null
+    if (!primaryEmail && !suframa?.length) {
+      return null
+    }
 
     return {
       email: primaryEmail,
       inscricoesEstaduais: null,
+      suframa,
       fonte: 'cnpja',
     }
   } catch {
@@ -167,6 +222,7 @@ async function fetchFromCnpjWs(
         inscricoesEstaduais && inscricoesEstaduais.length > 0
           ? inscricoesEstaduais
           : null,
+      suframa: null,
       fonte: 'cnpj_ws',
     }
   } catch {

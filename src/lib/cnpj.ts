@@ -13,11 +13,28 @@ import {
 } from './enrichment'
 import { getRelacoes, RelacaoGrafo } from './grafo'
 
+export type IncentivoSuframa = {
+  tributo: string
+  beneficio: string
+  finalidade: string
+  fundamentoLegal: string
+}
+
+export type SuframaData = {
+  numero: string
+  desde: string
+  aprovada: boolean
+  dataAprovacao: string
+  status: string
+  incentivos: IncentivoSuframa[]
+}
+
 export type CNPJDataWithDescription =
   CNPJData & {
     descricao: string
     email: string | null
     inscricoesEstaduais: InscricaoEstadual[] | null
+    suframa: SuframaData[] | null
     relacoesGrafo: RelacaoGrafo[] | null
   }
 
@@ -240,6 +257,7 @@ export const fetchCNPJ = cache(
       email,
       inscricoesEstaduais:
         enrichment.inscricoesEstaduais,
+      suframa: enrichment.suframa,
       relacoesGrafo,
     }
   }

@@ -1,7 +1,6 @@
 "use client"
 
 import Link from 'next/link'
-import React from 'react'
 import { Card, CardContent, CardDescription, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -35,13 +34,29 @@ import {
 import { Item } from '@/components/ui/item'
 import GrafoRelacoes from '@/components/grafoRelacoes'
 
-
 interface Props {
   data: CNPJData & {
     email?: string | null
+    suframa?: SuframaData[] | null
     relacoesGrafo?: RelacaoGrafo[] | null
   }
   description: string
+}
+
+export type SuframaData = {
+  numero: string
+  desde: string
+  aprovada: boolean
+  dataAprovacao: string
+  status: string
+  incentivos: IncentivoSuframa[]
+}
+
+export type IncentivoSuframa = {
+  tributo: string
+  beneficio: string
+  finalidade: string
+  fundamentoLegal: string
 }
 
 interface RegimeTributario {
@@ -198,21 +213,15 @@ export default function CNPJPageContent({ data, description }: Props) {
       (a, b) => b[1] - a[1]
     )[0]?.[0]
 
-  const descricaoEstabilidade: Record<
-    string,
-    string
-  > = {
-    'Empresa recém-constituída':
-      'Empresa aberta há menos de 12 meses. Ainda não há histórico suficiente para avaliar a estabilidade do quadro societário.',
-    'Muito estável':
-      'O quadro societário não apresenta alterações há mais de 5 anos.',
-    'Estável':
-      'O quadro societário não apresenta alterações recentes, com a última mudança ocorrida entre 2 e 5 anos atrás.',
-    'Alteração recente':
-      'Foi identificada uma alteração no quadro societário entre 1 e 2 anos atrás.',
-    'Alta rotatividade':
-      'Foi identificada uma alteração societária nos últimos 12 meses.'
+  const descricaoEstabilidade: Record<string, string> = {
+    'Empresa recém-constituída': 'Empresa aberta há menos de 12 meses. Ainda não há histórico suficiente para avaliar a estabilidade do quadro societário.',
+    'Muito estável': 'O quadro societário não apresenta alterações há mais de 5 anos.',
+    'Estável': 'O quadro societário não apresenta alterações recentes, com a última mudança ocorrida entre 2 e 5 anos atrás.',
+    'Alteração recente': 'Foi identificada uma alteração no quadro societário entre 1 e 2 anos atrás.',
+    'Alta rotatividade': 'Foi identificada uma alteração societária nos últimos 12 meses.'
   }
+
+  // console.log(data)
 
   return (
     <>
@@ -292,35 +301,6 @@ export default function CNPJPageContent({ data, description }: Props) {
           )}
         </div>
 
-        <Card className="py-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Atualizações da empresa</TableHead>
-                <TableHead className="text-right">Data</TableHead>
-              </TableRow>
-            </TableHeader>
-
-          <TableBody>
-              {[
-                { label: 'Data de início das atividades', value: data.data_inicio_atividade },
-                { label: 'Data de opção pelo MEI', value: data.data_opcao_pelo_mei },
-                { label: 'Data de exclusão do MEI', value: data.data_exclusao_do_mei },
-                { label: 'Data de opção pelo simples', value: data.data_opcao_pelo_simples },
-                { label: 'Data de exclusão do simples', value: data.data_exclusao_do_simples },
-              ]
-               // Filtra itens que possuem data válida e garante ao TypeScript que `value` é string
-              .filter((item): item is { label: string; value: string } => Boolean(item.value))
-              .sort((a, b) => new Date(a.value).getTime() - new Date(b.value).getTime())
-              .map(item => (
-                <TableRow key={item.label}>
-                  <TableCell className="font-medium">{item.label}</TableCell>
-                  <TableCell className="text-right">{new Date(item.value as string).toLocaleDateString('pt-BR')}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
         {/* Cards de resumo */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 print:grid-cols-3 gap-4">
           <Card className="p-6">
@@ -360,8 +340,37 @@ export default function CNPJPageContent({ data, description }: Props) {
           </Card>
         </div>
 
-        {/* Regime Tributário */}
+        <Card className="py-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Atualizações da empresa</TableHead>
+                <TableHead className="text-right">Data</TableHead>
+              </TableRow>
+            </TableHeader>
 
+          <TableBody>
+              {[
+                { label: 'Data de início das atividades', value: data.data_inicio_atividade },
+                { label: 'Data de opção pelo MEI', value: data.data_opcao_pelo_mei },
+                { label: 'Data de exclusão do MEI', value: data.data_exclusao_do_mei },
+                { label: 'Data de opção pelo simples', value: data.data_opcao_pelo_simples },
+                { label: 'Data de exclusão do simples', value: data.data_exclusao_do_simples },
+              ]
+               // Filtra itens que possuem data válida e garante ao TypeScript que `value` é string
+              .filter((item): item is { label: string; value: string } => Boolean(item.value))
+              .sort((a, b) => new Date(a.value).getTime() - new Date(b.value).getTime())
+              .map(item => (
+                <TableRow key={item.label}>
+                  <TableCell className="font-medium">{item.label}</TableCell>
+                  <TableCell className="text-right">{new Date(item.value as string).toLocaleDateString('pt-BR')}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+
+        {/* Regime Tributário */}
         {data.regime_tributario && data.regime_tributario.length > 0 && (
           <Card className="py-0">
             <Table>
@@ -395,7 +404,90 @@ export default function CNPJPageContent({ data, description }: Props) {
           </Card>
         )}
 
+        {/* Incentivos Fiscais (SUFRAMA) */}
+        {data.suframa && data.suframa.length > 0 && (
+          <Card className="py-0 gap-0">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold">
+                Incentivos Fiscais
+              </h3>
+
+              <p className="text-sm text-muted-foreground">
+                Benefícios fiscais vinculados ao cadastro SUFRAMA.
+              </p>
+            </div>
+
+            <Separator />
+
+            <div>
+              {data.suframa.map((registro) => (
+                <div key={registro.numero}>
+                  <div className="px-6 py-4 flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      SUFRAMA {registro.numero}
+                    </span>
+
+                    {registro.aprovada && (
+                      <div className="flex flex-row gap-2 items-center">
+                        <Badge variant="outline">
+                          Aprovada em{" "}
+                          {new Date(
+                            registro.dataAprovacao
+                          ).toLocaleDateString("pt-BR")}
+                        </Badge>
+                        <Badge variant={ registro.status === 'Ativa' ? 'default' : 'secondary'}>
+                          {registro.status}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tributo</TableHead>
+                        <TableHead>Benefício</TableHead>
+                        <TableHead>Finalidade</TableHead>
+                        <TableHead>Base Legal</TableHead>
+                      </TableRow>
+                    </TableHeader>
+
+                    <TableBody>
+                      {registro.incentivos.map(
+                        (incentivo, index) => (
+                          <TableRow
+                            key={`${registro.numero}-${index}`}
+                          >
+                            <TableCell className="font-medium">
+                              {incentivo.tributo}
+                            </TableCell>
+
+                            <TableCell>
+                              {incentivo.beneficio}
+                            </TableCell>
+
+                            <TableCell>
+                              {incentivo.finalidade}
+                            </TableCell>
+
+                            <TableCell>
+                              {incentivo.fundamentoLegal}
+                            </TableCell>
+                          </TableRow>
+                        )
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
         {/* Estabelecimento */}
+        
         <Card>
           <div className="px-6 flex flex-col md:flex-row md:justify-between">
             <div className="flex flex-row items-center gap-2">
@@ -531,36 +623,35 @@ export default function CNPJPageContent({ data, description }: Props) {
           </div>
 
           {data.cnaes_secundarios.length > 0 && (
-            <Collapsible>
-              <Separator />
-              <CollapsibleTrigger asChild>
-                <Button className="w-full flex flex-row items-center justify-between px-6 text-sm font-semibold text-muted-foreground mt-3" variant="ghost">
-                  Atividades Secundárias ({data.cnaes_secundarios.length})
-                  <ChevronsUpDown className="size-4"/>
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="mt-3">
-                  <Separator />
-                  <div className="pt-4 px-6 space-y-2">
-                    {data.cnaes_secundarios.map((atividade) => (
-                      <div
-                        key={atividade.codigo}
-                        className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg"
-                      >
-                        <p className="text-sm">{atividade.descricao}</p>
-                        <p className="text-xs text-muted-foreground">Código: {atividade.codigo}</p>
-                      </div>
-                    ))}
-                  </div>
+          <Collapsible>
+            <Separator />
+            <CollapsibleTrigger asChild>
+              <Button className="w-full flex flex-row items-center justify-between px-6 text-sm font-semibold text-muted-foreground mt-3" variant="ghost">
+                Atividades Secundárias ({data.cnaes_secundarios.length})
+                <ChevronsUpDown className="size-4"/>
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-3">
+                <Separator />
+                <div className="pt-4 px-6 space-y-2">
+                  {data.cnaes_secundarios.map((atividade) => (
+                    <div
+                      key={atividade.codigo}
+                      className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg"
+                    >
+                      <p className="text-sm">{atividade.descricao}</p>
+                      <p className="text-xs text-muted-foreground">Código: {atividade.codigo}</p>
+                    </div>
+                  ))}
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
           )}
         </Card>
 
         {/* Análise Societária */}
-
         <Card>
           <h3 className="text-lg font-semibold px-6">
             Análise Societária
