@@ -12,7 +12,7 @@ export default function CNPJPage() {
             <header className="my-8 md:my-12 flex flex-col gap-2">
                 <DatabaseSearch className="h-8 w-8" />
                 <h1 className="text-4xl font-bold">CNPJ<span className="text-orange-500">Hub</span></h1>
-                <p className="text-lg text-muted-foreground">Pesquise qalquer CNPJ. A qualquer hora. Totalmente gratuito.</p>
+                <p className="text-lg text-muted-foreground">Pesquise qualquer CNPJ. A qualquer hora. Totalmente gratuito.</p>
             </header>
 
             <div className="w-full">
