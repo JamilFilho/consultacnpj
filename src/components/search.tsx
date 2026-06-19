@@ -65,12 +65,12 @@ export default function Search({nav}:SearchProps) {
                     maxLength={18}
                     className={`
                         flex-1 rounded-md border px-4 font-mono text-md tracking-wide bg-background focus:outline-none focus:ring-2 focus:ring-ring
-                        ${nav ? "py-2" : "py-1"}
+                        ${nav ? "py-1" : "py-2"}
                         `}
                     autoFocus
                 />
                 <Button 
-                    className={`h-full ${nav ? "py-2.5" : "py-1.5"}`}
+                    className={`h-full ${nav ? "py-1.5" : "py-2.5"}`}
                     type="submit"
                 >
                     <DatabaseSearch />
