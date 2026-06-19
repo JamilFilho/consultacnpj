@@ -31,7 +31,7 @@ export default function Search() {
         }
 
 
-        router.push(`/p/${cleaned}`)
+        router.push(`/consulta/${cleaned}`)
     }
 
     const formatCNPJ = (value: string) => {
