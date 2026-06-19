@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import "../styles/globals.css";
-import FeedCNPJ from "@/components/feed";
-import { Analytics } from "@vercel/analytics/next";
-import { Providers } from "@/lib/providers";
-import { LayoutAside } from "@/components/layout-footer";
 import Head from "next/head";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import { LayoutAside } from "@/components/layout-footer";
+import FeedCNPJ from "@/components/feed";
+import { Providers } from "@/lib/providers";
+import "../styles/globals.css";
 
 export const metadata: Metadata = {
   title: "CNPJHub | Dados oficiais da Receita Federal, ao alcance de todos.",
@@ -51,6 +52,7 @@ export default function RootLayout({
           </Providers>
         </div>
         <Analytics/>
+        <SpeedInsights/>
       </body>
     </html>
   );
