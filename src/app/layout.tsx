@@ -6,6 +6,7 @@ import { LayoutAside } from "@/components/layout-footer";
 import FeedCNPJ from "@/components/feed";
 import { Providers } from "@/lib/providers";
 import "../styles/globals.css";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "CNPJHub | Dados oficiais da Receita Federal, ao alcance de todos.",
@@ -40,8 +41,13 @@ export default function RootLayout({
     <html lang="pt-br">
       <Head>
         <meta name="google-adsense-account" content="ca-pub-8744567957048944" />
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8744567957048944" crossOrigin="anonymous" />
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+         <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8744567957048944"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+        <Script>(adsbygoogle = window.adsbygoogle || []).push({});</Script>
       </Head>
       <body className="m-0 p-0">
         <div className="mx-auto">

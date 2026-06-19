@@ -3,10 +3,7 @@
 import { type ReactNode } from "react";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import Script from "next/script"
 import AdComponent from "./ads";
-import { BadgeCheck, LayersPlus, Route } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export function LayoutAside({ feed }: { feed: ReactNode }) {
   return (
