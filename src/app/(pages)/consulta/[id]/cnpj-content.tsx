@@ -360,7 +360,7 @@ export default function CNPJPageContent({
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {item.cnpj_da_scp ? (
-                        <Link href={`/p/${item.cnpj_da_scp}`}>{item.cnpj_da_scp}</Link>
+                        <Link href={`/consulta/${item.cnpj_da_scp}`}>{item.cnpj_da_scp}</Link>
                       ) : (
                         '—'
                       )}
@@ -389,7 +389,7 @@ export default function CNPJPageContent({
             </div>
             {!ehMatriz && cnpjMatriz && (
               <Link
-                href={`/p/${cnpjMatriz}`}
+                href={`/consulta/${cnpjMatriz}`}
                 className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 decoration-dotted inline-flex items-center gap-1"
               >
                 Ver matriz ({formatCNPJ(cnpjMatriz)})
@@ -472,7 +472,7 @@ export default function CNPJPageContent({
                 <div className="flex flex-wrap gap-2">
                   {data.empresasMesmoEndereco.map((empresa) => (
                     <Item key={empresa.cnpj} variant="outline">
-                      <Link href={`/p/${empresa.cnpj}`}>
+                      <Link href={`/consulta/${empresa.cnpj}`}>
                         {empresa.nome_fantasia || empresa.razao_social}
                       </Link>
                     </Item>
@@ -621,7 +621,7 @@ export default function CNPJPageContent({
                         <p className="font-mono text-sm">
                           {socio.cnpj_cpf_do_socio.length === 14 ? (
                             <Link
-                              href={`/p/${socio.cnpj_cpf_do_socio}`}
+                              href={`/consulta/${socio.cnpj_cpf_do_socio}`}
                               className="underline underline-offset-4 decoration-dotted flex flex-row gap-2 items-center"
                             >
                               {formatCNPJ(socio.cnpj_cpf_do_socio)}
@@ -654,7 +654,7 @@ export default function CNPJPageContent({
                         {socio.empresasRelacionadas.map((empresa) => (
                           <Item key={empresa.cnpj} variant="outline">
                             <Link
-                              href={`/p/${empresa.cnpj}`}
+                              href={`/consulta/${empresa.cnpj}`}
                               title={empresa.nome_fantasia || empresa.razao_social}
                               className="w-full flex flex-col md:flex-row justify-between gap-2"
                             >
