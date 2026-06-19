@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
         </Link>
 
         <div className="hidden md:block w-1/2 ml-auto">
-            <Search />
+            <Search nav />
         </div>
     </nav>
     

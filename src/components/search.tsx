@@ -7,7 +7,11 @@ import { Button } from '@/components/ui/button';
 import { DatabaseSearch, SearchIcon } from 'lucide-react';
 import { Turnstile } from "next-turnstile";
 
-export default function Search() {
+interface SearchProps {
+    nav?: boolean
+}
+
+export default function Search({nav}:SearchProps) {
     const [cnpj, setCnpj] = useState('')
     const [turnstileStatus, setTurnstileStatus] = useState<"success" | "error" | "expired" | "required">("required");
     const [error, setError] = useState<string | null>(null);
@@ -52,20 +56,23 @@ export default function Search() {
 
     return(
         <form onSubmit={handleSearch} className="flex flex-col">
-            <div className="w-full flex flex-col md:flex-row gap-2">
-                <InputGroup>
-                    <InputGroupAddon>
-                        <SearchIcon />
-                    </InputGroupAddon>
-                    <InputGroupInput
-                        type="text"
-                        placeholder="00.000.000/0000-00"
-                        value={cnpj}
-                        onChange={handleCNPJChange}
-                        maxLength={18}
-                    />
-                </InputGroup>
-                <Button type="submit">
+            <div className="flex flex-col md:flex-row gap-2">
+                <input
+                    type="text"
+                    placeholder="00.000.000/0000-00"
+                    value={cnpj}
+                    onChange={handleCNPJChange}
+                    maxLength={18}
+                    className={`
+                        flex-1 rounded-md border px-4 font-mono text-md tracking-wide bg-background focus:outline-none focus:ring-2 focus:ring-ring
+                        ${nav ? "py-2" : "py-1"}
+                        `}
+                    autoFocus
+                />
+                <Button 
+                    className={`h-full ${nav ? "py-2.5" : "py-1.5"}`}
+                    type="submit"
+                >
                     <DatabaseSearch />
                     Consultar CNPJ
                 </Button>
@@ -76,7 +83,7 @@ export default function Search() {
                 siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
                 retry="auto"
                 refreshExpired="auto"
-                sandbox={process.env.NODE_ENV === "development"}
+                // sandbox={process.env.NODE_ENV === "development"}
                 onError={() => {
                     setTurnstileStatus("error");
                     setError("Security check failed. Please try again.");
