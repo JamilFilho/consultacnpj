@@ -94,7 +94,7 @@ export default function GeradorCNPJClient() {
   const dv = cnpjAtual.slice(12, 14)
 
   return (
-    <section className="px-6 pt-12">
+    <section className="w-2/3 mx-auto px-6 mt-12 pt-12">
       {/* Cabeçalho */}
       <header className="mb-10">
         <Badge variant="outline" className="mb-3 font-mono text-xs">
