@@ -73,11 +73,6 @@ function chavePessoa(id: string): string {
   return `p:${id}`
 }
 
-/**
- * Converte a lista plana de relações (arestas pessoa-empresa) retornada
- * pela API em nós e arestas para o grafo, mesclando com os nós/arestas já
- * existentes em memória (para suportar expansão incremental).
- */
 function mesclarRelacoes(
   relacoes: RelacaoGrafo[],
   nosExistentes: Map<string, No>,
@@ -140,6 +135,21 @@ function mesclarRelacoes(
 const LARGURA_BASE = 800
 const ALTURA_BASE = 520
 
+// Distância euclidiana entre dois toques
+function distanciaToques(t1: React.Touch, t2: React.Touch): number {
+  const dx = t1.clientX - t2.clientX
+  const dy = t1.clientY - t2.clientY
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+// Ponto central entre dois toques (em coordenadas de cliente)
+function centroToques(t1: React.Touch, t2: React.Touch): { x: number; y: number } {
+  return {
+    x: (t1.clientX + t2.clientX) / 2,
+    y: (t1.clientY + t2.clientY) / 2,
+  }
+}
+
 export default function GrafoRelacoes({
   cnpjRaiz,
   razaoSocialRaiz,
@@ -163,60 +173,49 @@ export default function GrafoRelacoes({
     return inicial
   })
 
-  const [arestas, setArestas] = useState<Map<string, Aresta>>(
-    new Map()
-  )
+  const [arestas, setArestas] = useState<Map<string, Aresta>>(new Map())
 
-  const [indisponivel, setIndisponivel] = useState(
-    relacoesIniciais === null
-  )
+  const [indisponivel] = useState(relacoesIniciais === null)
   const [carregando, setCarregando] = useState<string | null>(null)
   const [erroExpansao, setErroExpansao] = useState<string | null>(null)
   const [nosSelecionados, setNosSelecionados] = useState<string[]>([])
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const moveuNoRef = useRef(false)
-
-  const inicioDragRef = useRef<{
-    x: number
-    y: number
-  } | null>(null)
-
+  const inicioDragRef = useRef<{ x: number; y: number } | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
-  const arrastoRef = useRef<{
-    ativo: boolean
-    ultimoX: number
-    ultimoY: number
-  }>({ ativo: false, ultimoX: 0, ultimoY: 0 })
+  const arrastoRef = useRef<{ ativo: boolean; ultimoX: number; ultimoY: number }>({
+    ativo: false,
+    ultimoX: 0,
+    ultimoY: 0,
+  })
+  const arrastandoNoRef = useRef<{ key: string; offsetX: number; offsetY: number } | null>(null)
 
-  const arrastandoNoRef = useRef<{
-    key: string
-    offsetX: number
-    offsetY: number
+  // --- Estado de pinch (dois dedos) ---
+  // Guardamos a distância e o centro iniciais no começo do gesto, mais os
+  // valores de zoom/pan vigentes no momento — assim o cálculo incremental
+  // não acumula erro entre frames.
+  const pinchRef = useRef<{
+    distanciaInicial: number
+    zoomInicial: number
+    panInicial: { x: number; y: number }
+    centroCliente: { x: number; y: number }
   } | null>(null)
 
   const expandidos = useRef<Set<string>>(new Set())
   const nosRef = useRef(nos)
   const arestasRef = useRef(arestas)
+  const zoomRef = useRef(zoom)
+  const panRef = useRef(pan)
+
   const coordenadasGrafo = useCallback(
     (clientX: number, clientY: number) => {
       const svg = svgRef.current
-
-      if (!svg) {
-        return { x: 0, y: 0 }
-      }
+      if (!svg) return { x: 0, y: 0 }
 
       const rect = svg.getBoundingClientRect()
-
-      const xSvg =
-        ((clientX - rect.left) / rect.width) *
-          LARGURA_BASE -
-        LARGURA_BASE / 2
-
-      const ySvg =
-        ((clientY - rect.top) / rect.height) *
-          ALTURA_BASE -
-        ALTURA_BASE / 2
+      const xSvg = ((clientX - rect.left) / rect.width) * LARGURA_BASE - LARGURA_BASE / 2
+      const ySvg = ((clientY - rect.top) / rect.height) * ALTURA_BASE - ALTURA_BASE / 2
 
       return {
         x: (xSvg - pan.x) / zoom,
@@ -226,24 +225,19 @@ export default function GrafoRelacoes({
     [pan, zoom]
   )
 
-  useEffect(() => {
-    nosRef.current = nos
-  }, [nos])
+  useEffect(() => { nosRef.current = nos }, [nos])
+  useEffect(() => { arestasRef.current = arestas }, [arestas])
+  useEffect(() => { zoomRef.current = zoom }, [zoom])
+  useEffect(() => { panRef.current = pan }, [pan])
 
-  useEffect(() => {
-    arestasRef.current = arestas
-  }, [arestas])
-
-  // Carrega as relações iniciais (vindas do server) na montagem
   useEffect(() => {
     if (relacoesIniciais && relacoesIniciais.length > 0) {
-      const { nos: novosNos, arestas: novasArestas } =
-        mesclarRelacoes(
-          relacoesIniciais,
-          nos,
-          arestas,
-          { x: 0, y: 0 }
-        )
+      const { nos: novosNos, arestas: novasArestas } = mesclarRelacoes(
+        relacoesIniciais,
+        nos,
+        arestas,
+        { x: 0, y: 0 }
+      )
       setNos(novosNos)
       setArestas(novasArestas)
       expandidos.current.add(cnpjRaiz.replace(/\D/g, ''))
@@ -251,135 +245,82 @@ export default function GrafoRelacoes({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const buscarConexao = useCallback(
-    async (origem: No, destino: No) => {
-      try {
-        setCarregando(destino.key)
-        setErroExpansao(null)
-
-        const origemId =
-          origem.tipo === 'pessoa'
-            ? origem.idGrafo
-            : origem.documento
-
-        const destinoId =
-          destino.tipo === 'pessoa'
-            ? destino.idGrafo
-            : destino.documento
-
-        if (!origemId || !destinoId) return
-
-        const res = await fetch(
-          `/api/conexao/${origemId}/${destinoId}`
-        )
-
-        const data = await res.json()
-
-        if (!res.ok) {
-          setErroExpansao(
-            'Não foi possível localizar a conexão.'
-          )
-          return
-        }
-
-        const relacoes: RelacaoGrafo[] = data ?? []
-
-        const { nos: novosNos, arestas: novasArestas } =
-          mesclarRelacoes(
-            relacoes,
-            nosRef.current,
-            arestasRef.current,
-            {
-              x:
-                (origem.x + destino.x) / 2,
-              y:
-                (origem.y + destino.y) / 2,
-            }
-          )
-
-        setNos(novosNos)
-        setArestas(novasArestas)
-      } catch {
-        setErroExpansao(
-          'Erro ao consultar conexão.'
-        )
-      } finally {
-        setCarregando(null)
-      }
-    },
-    []
-  )
-
-  const expandirNo = useCallback(
-    async (no: No) => {
-      const identificador =
-        no.tipo === 'pessoa'
-          ? no.idGrafo
-          : no.documento?.replace(/[^\d]/g, '')
-
-      if (!identificador) {
-        console.error('Nó sem identificador', no)
-        return
-      }
-
-      if (expandidos.current.has(identificador)) {
-        return
-      }
-
-      setCarregando(no.key)
+  const buscarConexao = useCallback(async (origem: No, destino: No) => {
+    try {
+      setCarregando(destino.key)
       setErroExpansao(null)
 
-      try {
-        const res = await fetch(
-          `/api/grafo/${identificador}`
-        )
+      const origemId = origem.tipo === 'pessoa' ? origem.idGrafo : origem.documento
+      const destinoId = destino.tipo === 'pessoa' ? destino.idGrafo : destino.documento
+      if (!origemId || !destinoId) return
 
-        const data = await res.json()
+      const res = await fetch(`/api/conexao/${origemId}/${destinoId}`)
+      const data = await res.json()
 
-        if (!res.ok) {
-          setErroExpansao(
-            `Não foi possível carregar a rede de ${no.label}.`
-          )
-          return
-        }
-
-        const relacoes: RelacaoGrafo[] =
-          data.relacoes ?? []
-
-        expandidos.current.add(identificador)
-
-        const origem =
-          nosRef.current.get(no.key)
-
-        const {
-          nos: novosNos,
-          arestas: novasArestas,
-        } = mesclarRelacoes(
-          relacoes,
-          nosRef.current,
-          arestasRef.current,
-          origem
-            ? {
-                x: origem.x,
-                y: origem.y,
-              }
-            : null
-        )
-
-        setNos(novosNos)
-        setArestas(novasArestas)
-      } catch {
-        setErroExpansao(
-          'Erro de conexão ao buscar relações. Tente novamente.'
-        )
-      } finally {
-        setCarregando(null)
+      if (!res.ok) {
+        setErroExpansao('Não foi possível localizar a conexão.')
+        return
       }
-    },
-    []
-  )
 
-  // --- Simulação de força (repulsão entre nós + atração nas arestas) ---
+      const relacoes: RelacaoGrafo[] = data ?? []
+      const { nos: novosNos, arestas: novasArestas } = mesclarRelacoes(
+        relacoes,
+        nosRef.current,
+        arestasRef.current,
+        { x: (origem.x + destino.x) / 2, y: (origem.y + destino.y) / 2 }
+      )
+      setNos(novosNos)
+      setArestas(novasArestas)
+    } catch {
+      setErroExpansao('Erro ao consultar conexão.')
+    } finally {
+      setCarregando(null)
+    }
+  }, [])
+
+  const expandirNo = useCallback(async (no: No) => {
+    const identificador =
+      no.tipo === 'pessoa' ? no.idGrafo : no.documento?.replace(/[^\d]/g, '')
+
+    if (!identificador) {
+      console.error('Nó sem identificador', no)
+      return
+    }
+
+    if (expandidos.current.has(identificador)) return
+
+    setCarregando(no.key)
+    setErroExpansao(null)
+
+    try {
+      const res = await fetch(`/api/grafo/${identificador}`)
+      const data = await res.json()
+
+      if (!res.ok) {
+        setErroExpansao(`Não foi possível carregar a rede de ${no.label}.`)
+        return
+      }
+
+      const relacoes: RelacaoGrafo[] = data.relacoes ?? []
+      expandidos.current.add(identificador)
+
+      const origem = nosRef.current.get(no.key)
+      const { nos: novosNos, arestas: novasArestas } = mesclarRelacoes(
+        relacoes,
+        nosRef.current,
+        arestasRef.current,
+        origem ? { x: origem.x, y: origem.y } : null
+      )
+      setNos(novosNos)
+      setArestas(novasArestas)
+    } catch {
+      setErroExpansao('Erro de conexão ao buscar relações. Tente novamente.')
+    } finally {
+      setCarregando(null)
+    }
+  }, [])
+
+  // --- Simulação de força ---
   useEffect(() => {
     let ativo = true
 
@@ -392,8 +333,6 @@ export default function GrafoRelacoes({
 
         const proximos = new Map(prevNos)
 
-        // Repulsão entre todos os pares (O(n²), aceitável para grafos
-        // pequenos/médios como esses de relações societárias)
         for (let i = 0; i < lista.length; i++) {
           const a = lista[i]
           let fx = 0
@@ -410,7 +349,6 @@ export default function GrafoRelacoes({
             fy += (dy / Math.sqrt(distSq)) * forca
           }
 
-          // Atração leve em direção ao centro, pra não dispersar demais
           fx += -a.x * 0.004
           fy += -a.y * 0.004
 
@@ -424,7 +362,6 @@ export default function GrafoRelacoes({
           })
         }
 
-        // Atração ao longo das arestas (lei de Hooke simplificada)
         for (const aresta of arestas.values()) {
           const origem = proximos.get(aresta.origem)
           const destino = proximos.get(aresta.destino)
@@ -435,38 +372,23 @@ export default function GrafoRelacoes({
           const dist = Math.sqrt(dx * dx + dy * dy) || 1
           const distIdeal = 130
           const forca = (dist - distIdeal) * 0.02
-
           const fx = (dx / dist) * forca
           const fy = (dy / dist) * forca
 
           if (!origem.fixo) {
-            proximos.set(aresta.origem, {
-              ...origem,
-              vx: origem.vx + fx,
-              vy: origem.vy + fy,
-            })
+            proximos.set(aresta.origem, { ...origem, vx: origem.vx + fx, vy: origem.vy + fy })
           }
           if (!destino.fixo) {
-            proximos.set(aresta.destino, {
-              ...destino,
-              vx: destino.vx - fx,
-              vy: destino.vy - fy,
-            })
+            proximos.set(aresta.destino, { ...destino, vx: destino.vx - fx, vy: destino.vy - fy })
           }
         }
 
-        // Integração de posição
         let alguemMoveu = false
         for (const [key, no] of proximos) {
           if (no.fixo) continue
           const novoX = no.x + no.vx
           const novoY = no.y + no.vy
-          if (
-            Math.abs(no.vx) > 0.02 ||
-            Math.abs(no.vy) > 0.02
-          ) {
-            alguemMoveu = true
-          }
+          if (Math.abs(no.vx) > 0.02 || Math.abs(no.vy) > 0.02) alguemMoveu = true
           proximos.set(key, { ...no, x: novoX, y: novoY })
         }
 
@@ -477,95 +399,135 @@ export default function GrafoRelacoes({
     }
 
     const frame = requestAnimationFrame(passo)
-
     return () => {
       ativo = false
       cancelAnimationFrame(frame)
     }
   }, [arestas])
 
-  // --- Pan (arrastar o canvas) ---
-  const onPointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      arrastoRef.current = {
-        ativo: true,
-        ultimoX: e.clientX,
-        ultimoY: e.clientY,
-      }
-    },
-    []
-  )
+  // --- Pan com pointer (mouse / stylus / toque único) ---
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    arrastoRef.current = { ativo: true, ultimoX: e.clientX, ultimoY: e.clientY }
+  }, [])
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (arrastandoNoRef.current) {
         const inicio = inicioDragRef.current
-
         if (inicio) {
-          const distancia = Math.hypot(
-            e.clientX - inicio.x,
-            e.clientY - inicio.y
-          )
-
-          if (distancia > 5) {
-            moveuNoRef.current = true
-          }
+          const distancia = Math.hypot(e.clientX - inicio.x, e.clientY - inicio.y)
+          if (distancia > 5) moveuNoRef.current = true
         }
 
-        const { x, y } = coordenadasGrafo(
-          e.clientX,
-          e.clientY
-        )
-
+        const { x, y } = coordenadasGrafo(e.clientX, e.clientY)
         const drag = arrastandoNoRef.current
 
         setNos(prev => {
           const next = new Map(prev)
-
           const no = next.get(drag.key)
-
           if (!no) return prev
-
-          next.set(drag.key, {
-            ...no,
-            x: x - drag.offsetX,
-            y: y - drag.offsetY,
-            vx: 0,
-            vy: 0,
-          })
-
+          next.set(drag.key, { ...no, x: x - drag.offsetX, y: y - drag.offsetY, vx: 0, vy: 0 })
           return next
         })
-
         return
       }
 
       if (!arrastoRef.current.ativo) return
 
-      const dx =
-        e.clientX - arrastoRef.current.ultimoX
-
-      const dy =
-        e.clientY - arrastoRef.current.ultimoY
-
+      const dx = e.clientX - arrastoRef.current.ultimoX
+      const dy = e.clientY - arrastoRef.current.ultimoY
       arrastoRef.current.ultimoX = e.clientX
       arrastoRef.current.ultimoY = e.clientY
-
-      setPan(prev => ({
-        x: prev.x + dx,
-        y: prev.y + dy,
-      }))
+      setPan(prev => ({ x: prev.x + dx, y: prev.y + dy }))
     },
     [coordenadasGrafo]
   )
 
   const onPointerUp = useCallback(() => {
     arrastoRef.current.ativo = false
-
     inicioDragRef.current = null
+    if (arrastandoNoRef.current) arrastandoNoRef.current = null
+  }, [])
 
-    if (arrastandoNoRef.current) {
-      arrastandoNoRef.current = null
+  // --- Pinch-to-zoom (touch com dois dedos) ---
+  //
+  // Usamos eventos de touch nativos em vez de pointer events porque os
+  // pointer events não expõem os dois pontos de contato simultaneamente —
+  // cada dedo chega como um evento separado, o que torna impossível calcular
+  // a distância entre eles de forma confiável num handler de React.
+  //
+  // Estratégia:
+  //   touchstart com 2 dedos  → salva estado inicial (distância + zoom + pan + centro)
+  //   touchmove  com 2 dedos  → calcula novo zoom proporcional à variação de distância,
+  //                             ajusta o pan para manter o ponto central fixo na tela
+  //   touchend / touchcancel  → limpa o estado do pinch
+  //
+  // O ajuste de pan durante o pinch garante que o ponto entre os dois dedos
+  // não "pule" conforme o zoom muda (comportamento esperado em apps de mapa).
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length !== 2) return
+
+    // Impede scroll da página enquanto o gesto de pinch está ativo
+    e.preventDefault()
+
+    const t1 = e.touches[0]
+    const t2 = e.touches[1]
+
+    pinchRef.current = {
+      distanciaInicial: distanciaToques(t1, t2),
+      zoomInicial: zoomRef.current,
+      panInicial: { ...panRef.current },
+      centroCliente: centroToques(t1, t2),
+    }
+  }, [])
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length !== 2 || !pinchRef.current) return
+
+    e.preventDefault()
+
+    const t1 = e.touches[0]
+    const t2 = e.touches[1]
+    const { distanciaInicial, zoomInicial, panInicial, centroCliente } = pinchRef.current
+
+    const distanciaAtual = distanciaToques(t1, t2)
+    const escala = distanciaAtual / distanciaInicial
+
+    const novoZoom = Math.min(Math.max(zoomInicial * escala, 0.4), 2.5)
+
+    // Para manter o ponto central fixo na tela enquanto o zoom muda,
+    // calculamos onde esse ponto estava no espaço do grafo (com zoom/pan
+    // iniciais) e ajustamos o pan para que ele permaneça no mesmo lugar
+    // no SVG após o zoom.
+    //
+    // Fórmula: panNovo = centroSVG - centroGrafo * novoZoom
+    // onde centroGrafo = (centroSVG - panInicial) / zoomInicial
+    const svg = svgRef.current
+    if (!svg) return
+
+    const rect = svg.getBoundingClientRect()
+
+    // Centro do gesto em coordenadas SVG (espaço [-W/2, W/2] x [-H/2, H/2])
+    const centroSvgX = ((centroCliente.x - rect.left) / rect.width) * LARGURA_BASE - LARGURA_BASE / 2
+    const centroSvgY = ((centroCliente.y - rect.top) / rect.height) * ALTURA_BASE - ALTURA_BASE / 2
+
+    // Mesma posição no espaço do grafo (invariante durante o gesto)
+    const centroGrafoX = (centroSvgX - panInicial.x) / zoomInicial
+    const centroGrafoY = (centroSvgY - panInicial.y) / zoomInicial
+
+    // Pan necessário para manter centroGrafo fixo em centroSvg com novoZoom
+    const novoPanX = centroSvgX - centroGrafoX * novoZoom
+    const novoPanY = centroSvgY - centroGrafoY * novoZoom
+
+    setZoom(novoZoom)
+    setPan({ x: novoPanX, y: novoPanY })
+  }, [])
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    // Encerra o pinch quando qualquer dedo é levantado
+    if (e.touches.length < 2) {
+      pinchRef.current = null
     }
   }, [])
 
@@ -575,15 +537,10 @@ export default function GrafoRelacoes({
   }, [])
 
   const listaNos = useMemo(() => Array.from(nos.values()), [nos])
-  const listaArestas = useMemo(
-    () => Array.from(arestas.values()),
-    [arestas]
-  )
+  const listaArestas = useMemo(() => Array.from(arestas.values()), [arestas])
 
   const totalPessoas = listaNos.filter(n => n.tipo === 'pessoa').length
-  const totalEmpresas = listaNos.filter(
-    n => n.tipo === 'empresa' || n.tipo === 'raiz'
-  ).length
+  const totalEmpresas = listaNos.filter(n => n.tipo === 'empresa' || n.tipo === 'raiz').length
 
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -598,20 +555,9 @@ export default function GrafoRelacoes({
   const [fullscreen, setFullscreen] = useState(false)
 
   useEffect(() => {
-    const handler = () => {
-      setFullscreen(!!document.fullscreenElement)
-    }
-
-    document.addEventListener(
-      'fullscreenchange',
-      handler
-    )
-
-    return () =>
-      document.removeEventListener(
-        'fullscreenchange',
-        handler
-      )
+    const handler = () => setFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', handler)
+    return () => document.removeEventListener('fullscreenchange', handler)
   }, [])
 
   if (indisponivel && listaNos.length <= 1) {
@@ -620,13 +566,10 @@ export default function GrafoRelacoes({
         <div className="flex flex-row items-start gap-3">
           <AlertTriangle className="size-5 text-amber-500 mt-0.5 shrink-0" />
           <div>
-            <h3 className="font-semibold mb-1">
-              Malha de relações indisponível
-            </h3>
+            <h3 className="font-semibold mb-1">Malha de relações indisponível</h3>
             <p className="text-sm text-muted-foreground">
-              Não foi possível carregar os dados de relações societárias
-              agora. Este é um recurso experimental e pode estar
-              temporariamente fora do ar.
+              Não foi possível carregar os dados de relações societárias agora. Este é um recurso
+              experimental e pode estar temporariamente fora do ar.
             </p>
           </div>
         </div>
@@ -637,34 +580,30 @@ export default function GrafoRelacoes({
   return (
     <>
       <p className="px-6 md:px-12 text-sm text-muted-foreground">
-        {totalPessoas} pessoa(s) · {totalEmpresas} empresa(s)
-        conectada(s)
+        {totalPessoas} pessoa(s) · {totalEmpresas} empresa(s) conectada(s)
       </p>
 
       {erroExpansao && (
         <div className="px-6 mt-3">
           <div className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2 flex flex-row items-center justify-between gap-2">
             <span>{erroExpansao}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-6"
-              onClick={() => setErroExpansao(null)}
-            >
+            <Button variant="ghost" size="icon" className="size-6" onClick={() => setErroExpansao(null)}>
               ×
             </Button>
           </div>
         </div>
       )}
 
-      <div ref={containerRef} className="w-full relative select-none touch-none fullscreen:h-screen fullscreen:w-screen" style={{ height: 480 }}>
+      <div
+        ref={containerRef}
+        className="w-full relative select-none touch-none fullscreen:h-screen fullscreen:w-screen"
+        style={{ height: 480 }}
+      >
         <div className="absolute right-12 top-0 flex flex-row gap-1 print:hidden">
           <Button
             variant="outline"
             size="icon"
-            onClick={() =>
-              setZoom(z => Math.min(z + 0.2, 2.5))
-            }
+            onClick={() => setZoom(z => Math.min(z + 0.2, 2.5))}
             title="Aumentar zoom"
           >
             <ZoomIn className="size-4" />
@@ -672,34 +611,19 @@ export default function GrafoRelacoes({
           <Button
             variant="outline"
             size="icon"
-            onClick={() =>
-              setZoom(z => Math.max(z - 0.2, 0.4))
-            }
+            onClick={() => setZoom(z => Math.max(z - 0.2, 0.4))}
             title="Diminuir zoom"
           >
             <ZoomOut className="size-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={resetarVisualizacao}
-            title="Centralizar"
-          >
+          <Button variant="outline" size="icon" onClick={resetarVisualizacao} title="Centralizar">
             <RefreshCw className="size-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            title="Tela cheia"
-            onClick={toggleFullscreen}
-          >
-            {fullscreen ? (
-              <Minimize2 className="size-4" />
-            ) : (
-              <Maximize2 className="size-4" />
-            )}
+          <Button variant="outline" size="icon" title="Tela cheia" onClick={toggleFullscreen}>
+            {fullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
           </Button>
         </div>
+
         <svg
           ref={svgRef}
           viewBox={`${-LARGURA_BASE / 2} ${-ALTURA_BASE / 2} ${LARGURA_BASE} ${ALTURA_BASE}`}
@@ -708,6 +632,10 @@ export default function GrafoRelacoes({
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerLeave={onPointerUp}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          onTouchCancel={onTouchEnd}
         >
           <defs>
             <marker
@@ -719,22 +647,15 @@ export default function GrafoRelacoes({
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path
-                d="M 0 0 L 10 5 L 0 10 z"
-                className="fill-slate-300 dark:fill-slate-700"
-              />
+              <path d="M 0 0 L 10 5 L 0 10 z" className="fill-slate-300 dark:fill-slate-700" />
             </marker>
           </defs>
 
-          <g
-            transform={`translate(${pan.x} ${pan.y}) scale(${zoom})`}
-          >
-            {/* Arestas */}
+          <g transform={`translate(${pan.x} ${pan.y}) scale(${zoom})`}>
             {listaArestas.map(aresta => {
               const origem = nos.get(aresta.origem)
               const destino = nos.get(aresta.destino)
               if (!origem || !destino) return null
-
               return (
                 <line
                   key={`${aresta.origem}__${aresta.destino}`}
@@ -749,7 +670,6 @@ export default function GrafoRelacoes({
               )
             })}
 
-            {/* Nós */}
             {listaNos.map(no => {
               const ehPessoa = no.tipo === 'pessoa'
               const ehRaiz = no.tipo === 'raiz'
@@ -764,24 +684,10 @@ export default function GrafoRelacoes({
                   className="cursor-pointer group"
                   onPointerDown={e => {
                     e.stopPropagation()
-
                     moveuNoRef.current = false
-
-                    inicioDragRef.current = {
-                      x: e.clientX,
-                      y: e.clientY,
-                    }
-
-                    const { x, y } = coordenadasGrafo(
-                      e.clientX,
-                      e.clientY
-                    )
-
-                    arrastandoNoRef.current = {
-                      key: no.key,
-                      offsetX: x - no.x,
-                      offsetY: y - no.y,
-                    }
+                    inicioDragRef.current = { x: e.clientX, y: e.clientY }
+                    const { x, y } = coordenadasGrafo(e.clientX, e.clientY)
+                    arrastandoNoRef.current = { key: no.key, offsetX: x - no.x, offsetY: y - no.y }
                   }}
                   onClick={async () => {
                     if (moveuNoRef.current) {
@@ -792,42 +698,25 @@ export default function GrafoRelacoes({
                     const selecionados = [...nosSelecionados]
 
                     if (selecionados.includes(no.key)) {
-                      setNosSelecionados(
-                        selecionados.filter(
-                          item => item !== no.key
-                        )
-                      )
+                      setNosSelecionados(selecionados.filter(item => item !== no.key))
                       return
                     }
 
                     if (selecionados.length === 0) {
                       setNosSelecionados([no.key])
-
                       await expandirNo(no)
                       return
                     }
 
                     if (selecionados.length === 1) {
-                      const origem =
-                        nos.get(selecionados[0])
-
+                      const origem = nos.get(selecionados[0])
                       if (!origem) return
-
-                      setNosSelecionados([
-                        selecionados[0],
-                        no.key,
-                      ])
-
-                      await buscarConexao(
-                        origem,
-                        no
-                      )
-
+                      setNosSelecionados([selecionados[0], no.key])
+                      await buscarConexao(origem, no)
                       return
                     }
 
                     setNosSelecionados([no.key])
-
                     await expandirNo(no)
                   }}
                 >
@@ -875,29 +764,11 @@ export default function GrafoRelacoes({
                   >
                     <div className="w-full h-full flex items-center justify-center">
                       {estaCarregando ? (
-                        <Loader2
-                          className={`size-4 animate-spin ${
-                            ehRaiz
-                              ? 'text-white'
-                              : 'text-slate-500'
-                          }`}
-                        />
+                        <Loader2 className={`size-4 animate-spin ${ehRaiz ? 'text-white' : 'text-slate-500'}`} />
                       ) : ehPessoa ? (
-                        <User
-                          className={`size-4 ${
-                            ehRaiz
-                              ? 'text-white'
-                              : 'text-blue-500'
-                          }`}
-                        />
+                        <User className={`size-4 ${ehRaiz ? 'text-white' : 'text-blue-500'}`} />
                       ) : (
-                        <Building2
-                          className={`size-4 ${
-                            ehRaiz
-                              ? 'text-white'
-                              : 'text-slate-500'
-                          }`}
-                        />
+                        <Building2 className={`size-4 ${ehRaiz ? 'text-white' : 'text-slate-500'}`} />
                       )}
                     </div>
                   </foreignObject>
@@ -907,9 +778,7 @@ export default function GrafoRelacoes({
                     textAnchor="middle"
                     className="text-[10px] font-medium fill-slate-700 dark:fill-slate-300"
                   >
-                    {no.label.length > 22
-                      ? `${no.label.slice(0, 22)}…`
-                      : no.label}
+                    {no.label.length > 22 ? `${no.label.slice(0, 22)}…` : no.label}
                   </text>
                 </g>
               )
@@ -920,7 +789,7 @@ export default function GrafoRelacoes({
 
       {nosSelecionados.length === 1 && nos.get(nosSelecionados[0]) && (
         <div className="px-6">
-          <NoDetalhe no={nos.get(nosSelecionados[0]) as No}/>
+          <NoDetalhe no={nos.get(nosSelecionados[0]) as No} />
         </div>
       )}
 
@@ -931,9 +800,7 @@ export default function GrafoRelacoes({
         <span className="flex flex-row items-center gap-1.5">
           <Building2 className="size-3.5 text-slate-500" /> Empresa
         </span>
-        <span className="ml-auto print:hidden">
-          Clique em um nó para expandir a rede
-        </span>
+        <span className="ml-auto print:hidden">Clique em um nó para expandir a rede</span>
       </div>
     </>
   )
@@ -942,45 +809,23 @@ export default function GrafoRelacoes({
 function NoDetalhe({ no }: { no: No }) {
   const ehEmpresaClicavel = no.tipo !== 'pessoa'
 
-  console.log(no)
-
   const cnpj =
-    no.documento &&
-    no.documento.replace(/\D/g, '').length === 14
+    no.documento && no.documento.replace(/\D/g, '').length === 14
       ? formatCNPJ(no.documento.replace(/\D/g, ''))
       : no.sublabel
 
   return (
     <div className="flex flex-row items-center justify-between gap-3 bg-zinc-100 rounded-lg px-4">
       <div>
-        <p className="text-sm font-semibold">
-          {no.label}
-        </p>
-
-        {cnpj && (
-          <p className="text-xs text-muted-foreground font-mono">
-            {cnpj}
-          </p>
-        )}
+        <p className="text-sm font-semibold">{no.label}</p>
+        {cnpj && <p className="text-xs text-muted-foreground font-mono">{cnpj}</p>}
       </div>
 
-      {ehEmpresaClicavel &&
-        no.documento && (
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-          >
-            <a
-              href={`/consulta/${no.documento.replace(
-                /\D/g,
-                ''
-              )}`}
-            >
-              Ver empresa
-            </a>
-          </Button>
-        )}
+      {ehEmpresaClicavel && no.documento && (
+        <Button variant="outline" size="sm" asChild>
+          <a href={`/consulta/${no.documento.replace(/\D/g, '')}`}>Ver empresa</a>
+        </Button>
+      )}
     </div>
   )
 }
