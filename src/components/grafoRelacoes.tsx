@@ -635,18 +635,11 @@ export default function GrafoRelacoes({
   }
 
   return (
-    <Card className="p-0 overflow-hidden gap-0">
-      <div className="py-4 px-6 flex flex-row items-center justify-between flex-wrap gap-2">
-        <div>
-          <h3 className="text-lg font-semibold">
-            Malha de relações
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {totalPessoas} pessoa(s) · {totalEmpresas} empresa(s)
-            conectada(s)
-          </p>
-        </div>
-      </div>
+    <>
+      <p className="px-6 md:px-12 text-sm text-muted-foreground">
+        {totalPessoas} pessoa(s) · {totalEmpresas} empresa(s)
+        conectada(s)
+      </p>
 
       {erroExpansao && (
         <div className="px-6 mt-3">
@@ -664,8 +657,8 @@ export default function GrafoRelacoes({
         </div>
       )}
 
-      <div ref={containerRef} className="relative select-none touch-none fullscreen:h-screen fullscreen:w-screen" style={{ height: 480 }}>
-        <div className="absolute right-6 top-6 flex flex-row gap-1 print:hidden">
+      <div ref={containerRef} className="w-full relative select-none touch-none fullscreen:h-screen fullscreen:w-screen" style={{ height: 480 }}>
+        <div className="absolute right-12 top-0 flex flex-row gap-1 print:hidden">
           <Button
             variant="outline"
             size="icon"
@@ -710,7 +703,7 @@ export default function GrafoRelacoes({
         <svg
           ref={svgRef}
           viewBox={`${-LARGURA_BASE / 2} ${-ALTURA_BASE / 2} ${LARGURA_BASE} ${ALTURA_BASE}`}
-          className="w-full h-full bg-slate-50 cursor-grab active:cursor-grabbing"
+          className="w-full h-full bg-zinc-100 cursor-grab active:cursor-grabbing"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
@@ -942,7 +935,7 @@ export default function GrafoRelacoes({
           Clique em um nó para expandir a rede
         </span>
       </div>
-    </Card>
+    </>
   )
 }
 
@@ -958,7 +951,7 @@ function NoDetalhe({ no }: { no: No }) {
       : no.sublabel
 
   return (
-    <div className="flex flex-row items-center justify-between gap-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg px-4 py-3">
+    <div className="flex flex-row items-center justify-between gap-3 bg-zinc-100 rounded-lg px-4">
       <div>
         <p className="text-sm font-semibold">
           {no.label}
@@ -979,7 +972,7 @@ function NoDetalhe({ no }: { no: No }) {
             asChild
           >
             <a
-              href={`/p/${no.documento.replace(
+              href={`/consulta/${no.documento.replace(
                 /\D/g,
                 ''
               )}`}

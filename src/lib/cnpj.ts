@@ -1,11 +1,12 @@
 // lib/cnpj.ts
 import { cache } from 'react'
 import { kv } from '@vercel/kv'
-import { CNPJData, EmpresaRelacionada } from '@/app/p/[id]/types'
+import { CNPJData, EmpresaRelacionada } from '@/app/(pages)/consulta/[id]/types'
 import { gerarChaveSocio, getEmpresasDoSocio } from './socios'
 import { gerarChaveEndereco, getEmpresasMesmoEndereco } from './enderecos'
 import { getOrFetchEnrichment, InscricaoEstadual } from './enrichment'
 import { getRelacoes, RelacaoGrafo } from './grafo'
+import { normalizarCNPJ } from './cnpj-generator'
 
 export type IncentivoSuframa = {
   tributo: string
@@ -88,7 +89,10 @@ export async function getOrCreateDescription(data: CNPJData): Promise<string> {
 // ---------------------------------------------------------------------------
 
 export const fetchCNPJBase = cache(async (id: string): Promise<CNPJDataBase> => {
-  const cleanId = id.replace(/\D/g, '')
+  // normalizarCNPJ preserva letras (A-Z) — diferente de um replace(/\D/g, ''),
+  // que destruiria CNPJs alfanuméricos (formato vigente a partir de 2026)
+  // ao remover qualquer caractere não-numérico.
+  const cleanId = normalizarCNPJ(id)
 
   const res = await fetch(`https://minhareceita.org/${cleanId}`, {
     next: { revalidate: false },

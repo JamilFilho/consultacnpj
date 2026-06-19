@@ -25,7 +25,7 @@ export default async function FeedCNPJ() {
         <>
           {lastFiveIds.map((id) => (
             <Item key={id} variant="outline" asChild>
-              <Link href={`/p/${id}`}>
+              <Link href={`/consulta/${id}`}>
                 <ItemContent>
                   <ItemDescription className="p-0 m-0">{formatCNPJ(id)}</ItemDescription>
                 </ItemContent>

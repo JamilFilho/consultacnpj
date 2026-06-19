@@ -10,7 +10,7 @@ export default async function sitemap() {
       lastModified: new Date(),
     },
     ...ids.map((id) => ({
-      url: `${baseUrl}/p/${id}`,
+      url: `${baseUrl}/consulta/${id}`,
       lastModified: new Date(),
     })),
   ]

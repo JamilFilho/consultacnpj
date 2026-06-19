@@ -2,7 +2,7 @@
 
 import crypto from 'crypto'
 import { kv } from '@vercel/kv'
-import { CNPJSocio } from '@/app/p/[id]/types'
+import { CNPJSocio } from '@/app/(pages)/consulta/[id]/types'
 
 export function gerarChaveSocio(socio: CNPJSocio) {
   return crypto

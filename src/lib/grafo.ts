@@ -1,5 +1,6 @@
 // lib/grafo.ts
 import { kv } from '@vercel/kv'
+import { normalizarCNPJ } from './cnpj-generator'
 
 export type RelacaoGrafo = {
   cnpj: string
@@ -19,6 +20,22 @@ function grafoCacheKey(documento: string): string {
   return `grafo:${documento}`
 }
 
+// Normaliza um documento de entrada para a API de grafo: hashes MD5 (CPF
+// mascarado costuma chegar como hash de 32 chars hex) passam direto em
+// minúsculas; qualquer outra coisa é tratada como CNPJ/CPF e normalizada
+// preservando letras (necessário para CNPJ alfanumérico — um
+// replace(/[^\d*]/g, '') descartaria as letras do novo formato).
+function normalizarDocumento(documento: string): string {
+  if (/^[a-f0-9]{32}$/i.test(documento)) {
+    return documento.toLowerCase()
+  }
+
+  // CPF mascarado preserva os asteriscos (***); CNPJ alfanumérico preserva
+  // letras A-Z. normalizarCNPJ remove pontuação e força maiúsculas — os
+  // asteriscos de CPF não são afetados por ela.
+  return normalizarCNPJ(documento)
+}
+
 /**
  * Busca as relações societárias de um CNPJ ou CPF (mascarado, no formato
  * que a própria API aceita) na API experimental grafo.minhareceita.org.
@@ -33,7 +50,7 @@ function grafoCacheKey(documento: string): string {
 export async function getRelacoes(
   documento: string
 ): Promise<RelacaoGrafo[] | null> {
-  const cleanDocumento = /^[a-f0-9]{32}$/i.test(documento) ? documento.toLowerCase() : documento.replace(/[^\d*]/g, '')
+  const cleanDocumento = normalizarDocumento(documento)
 
   const cacheKey = grafoCacheKey(cleanDocumento)
 

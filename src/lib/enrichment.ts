@@ -1,5 +1,6 @@
 // lib/enrichment.ts
 import { kv } from '@vercel/kv'
+import { normalizarCNPJ } from './cnpj-generator'
 
 export type EnrichmentData = {
   email: string | null
@@ -95,6 +96,13 @@ function parseRetryAfter(res: Response): number {
 // --- cnpja.com ---
 // Limite: 5 req/min por IP
 // Docs: https://open.cnpja.com/office/{cnpj}
+//
+// NOTA SOBRE CNPJ ALFANUMÉRICO: até a data desta implementação, não há
+// confirmação pública de que cnpja.com já indexa registros do novo formato
+// alfanumérico (vigente a partir de jul/2026). Mantemos o caminho aberto —
+// enviamos o CNPJ normalizado (com letras preservadas) — e a API
+// simplesmente retornará 404/erro para CNPJs alfanuméricos que ela ainda
+// não tenha indexado, o que já é tratado pelo retorno `null` existente.
 
 type CnpjaEmail = {
   ownership: string
@@ -167,6 +175,10 @@ async function fetchFromCnpja(
 // --- publica.cnpj.ws ---
 // Limite: 3 req/min por IP, retorna 429 + exige 60s de espera
 // Docs: https://publica.cnpj.ws/cnpj/{cnpj}
+//
+// Mesma observação do cnpja.com: aceitamos CNPJ alfanumérico no parâmetro,
+// mas a cobertura de dados do provedor para o novo formato é incerta até
+// a indexação ser confirmada — erros/404 já caem no fallback existente.
 
 type CnpjWsInscricaoEstadual = {
   inscricao_estadual: string
@@ -281,7 +293,10 @@ export async function getOrFetchEnrichment(
     return EMPTY_ENRICHMENT
   }
 
-  const cleanCnpj = cnpj.replace(/\D/g, '')
+  // normalizarCNPJ preserva letras (A-Z) do CNPJ alfanumérico — um
+  // replace(/\D/g, '') aqui destruiria a parte alfanumérica antes mesmo
+  // de tentar a consulta nos provedores de fallback.
+  const cleanCnpj = normalizarCNPJ(cnpj)
   const cacheKey = enrichmentCacheKey(cleanCnpj)
 
   const cached = await kv.get<EnrichmentData>(cacheKey)

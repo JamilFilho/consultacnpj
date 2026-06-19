@@ -92,7 +92,7 @@ export default function ValidadorCNPJClient() {
         <h1 className="text-3xl font-bold tracking-tight mb-2">
           Validador de CNPJ
         </h1>
-        <p className="text-muted-foreground max-w-xl">
+        <p className="text-muted-foreground">
           Confere se o dígito verificador de um CNPJ está matematicamente correto, formato numérico clássico ou alfanumérico (2026). Isso confirma a estrutura do número, não se a empresa existe de fato.
         </p>
       </div>
@@ -285,10 +285,7 @@ function ResultadoUnico({ diagnostico }: { diagnostico: DiagnosticoCNPJ }) {
           </Badge>
 
           <p className="text-sm text-muted-foreground">
-            O dígito verificador <span className="font-mono">{diagnostico.dvCalculado}</span>{' '}
-            confere com a base informada. Isso garante que a estrutura do
-            número está correta — para saber se a empresa existe de fato,
-            consulte na Receita.
+            O dígito verificador <span className="font-mono">{diagnostico.dvCalculado}</span>{' '} confere com a base informada. Isso garante que a estrutura do número está correta — para saber se a empresa existe de fato, consulte na Receita.
           </p>
 
           <Button asChild>
