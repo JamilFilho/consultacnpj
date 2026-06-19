@@ -21,6 +21,7 @@ import {
   Maximize2,
   Minimize2,
 } from 'lucide-react'
+import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemTitle } from './ui/item'
 
 type RelacaoGrafo = {
   cnpj: string
@@ -789,7 +790,11 @@ export default function GrafoRelacoes({
 
       {nosSelecionados.length === 1 && nos.get(nosSelecionados[0]) && (
         <div className="px-6">
-          <NoDetalhe no={nos.get(nosSelecionados[0]) as No} />
+          <NoDetalhe
+            no={nos.get(nosSelecionados[0])as No}
+            nos={nos}
+            arestas={arestas}
+          />
         </div>
       )}
 
@@ -806,8 +811,29 @@ export default function GrafoRelacoes({
   )
 }
 
-function NoDetalhe({ no }: { no: No }) {
+function NoDetalhe({
+  no,
+  nos,
+  arestas,
+}: {
+  no: No
+  nos: Map<string, No> 
+  arestas: Map<string, Aresta>}) {
+
   const ehEmpresaClicavel = no.tipo !== 'pessoa'
+  const empresasRelacionadas =
+  no.tipo === 'pessoa'
+    ? Array.from(arestas.values())
+        .filter(
+          aresta =>
+            aresta.origem === no.key
+        )
+        .map(
+          aresta =>
+            nos.get(aresta.destino)
+        )
+        .filter(Boolean)
+    : []
 
   const cnpj =
     no.documento && no.documento.replace(/\D/g, '').length === 14
@@ -816,10 +842,36 @@ function NoDetalhe({ no }: { no: No }) {
 
   return (
     <div className="flex flex-row items-center justify-between gap-3 bg-zinc-100 rounded-lg px-4">
-      <div>
+      <div className="w-full">
         <p className="text-sm font-semibold">{no.label}</p>
         {cnpj && <p className="text-xs text-muted-foreground font-mono">{cnpj}</p>}
+
+        {no.tipo === 'pessoa' &&
+          empresasRelacionadas.length > 0 && (
+            <ItemGroup className="mt-2">
+              <p className="my-6 font-medium">Empresas vinculadas</p>
+              {empresasRelacionadas.map(
+                empresa => (
+                  <Item
+                    key={empresa!.key}
+                    variant="outline"
+                  >
+                    <ItemContent>
+                      <ItemTitle>{empresa!.label}</ItemTitle>
+                      <ItemDescription>{empresa!.sublabel}</ItemDescription>
+                    </ItemContent>
+                    <ItemActions>
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={`/consulta/${empresa!.sublabel.replace(/\D/g, '')}`}>Ver empresa</a>
+                      </Button>              
+                    </ItemActions>
+                  </Item>
+                )
+              )}
+            </ItemGroup>
+        )}
       </div>
+
 
       {ehEmpresaClicavel && no.documento && (
         <Button variant="outline" size="sm" asChild>
