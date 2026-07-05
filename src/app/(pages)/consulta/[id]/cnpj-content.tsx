@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/collapsible"
 import { Item } from '@/components/ui/item'
 import { EmpresaRelacionada } from './types'
+import JsonLd from '@/components/JsonLd'
 
 // ---------------------------------------------------------------------------
 // Props — dados síncronos (base) + slots async (Suspense boundaries)
@@ -195,8 +196,35 @@ export default function CNPJPageContent({
       'Foi identificada uma alteração societária nos últimos 12 meses.',
   }
 
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: data.razao_social,
+    alternateName: data.nome_fantasia || '',
+    url: `https://cnpjhub.app/consulta/${data.cnpj}`,
+    taxID: data.cnpj,
+    description: `Empresa com situação cadastral ${data.descricao_situacao_cadastral}.`,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: data.logradouro,
+      addressLocality: data.municipio,
+      addressRegion: data.uf,
+      postalCode: data.cep,
+      addressCountry: 'BR',
+    },
+    telephone: data.ddd_telefone_1
+      ? `+55${data.ddd_telefone_1.replace(/\D/g, '')}`
+      : undefined,
+    foundingDate: data.data_inicio_atividade,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://cnpjhub.app/consulta/${data.cnpj}`,
+    },
+  }
+
   return (
     <>
+      <JsonLd data={organizationSchema} />
       {/* Header — renderiza imediatamente */}
       <header className="mt-12 mb-8 flex flex-col md:grid md:grid-cols-2 gap-2">
         <div>

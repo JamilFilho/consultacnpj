@@ -2,11 +2,30 @@ import { BadgeCheck, DatabaseSearch, LayersPlus, Route } from 'lucide-react'
 import Search from '@/components/search'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import JsonLd from '@/components/JsonLd';
 
 export default function CNPJPage() {
-  
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "CNPJ Hub",
+    "url": "https://cnpjhub.app",
+    "description": "Consulta CNPJ grátis com dados oficiais da Receita Federal. Gere, valide e explore conexões entre empresas.",
+    "publisher": {
+      "@type": "Organization",
+      "name": "CNPJ Hub",
+      "url": "https://cnpjhub.app"
+    },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://cnpjhub.app/consulta/{search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return (
-    <div>
+    <>
+      <JsonLd data={websiteSchema} />
       <div className="h-dvh md:h-screen flex-col items-center justify-center bg-zinc-50 -mb-12 pb-12">
         <section className="relative px-10 md:px-0 md:w-2/3 mx-auto h-full flex flex-col justify-center items-start gap-4">
             <header className="my-8 md:my-12 flex flex-col gap-2">
@@ -63,6 +82,6 @@ export default function CNPJPage() {
             </Button>
         </section>
       </div>
-    </div>
+    </>
   )
 }
