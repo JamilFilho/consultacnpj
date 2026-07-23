@@ -1,3 +1,4 @@
+// components/grafo.tsx
 import { RelacaoGrafo } from '@/lib/grafo'
 import GrafoRelacoes from '@/components/grafoRelacoes'
 

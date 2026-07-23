@@ -47,27 +47,34 @@ function normalizarDocumento(documento: string): string {
  * Retorna `null` quando a API está inacessível E não há cache disponível,
  * para que o chamador possa diferenciar "sem relações" de "indisponível".
  */
+
 export async function getRelacoes(
   documento: string
 ): Promise<RelacaoGrafo[] | null> {
   const cleanDocumento = normalizarDocumento(documento)
-
-  const cacheKey = grafoCacheKey(cleanDocumento)
+  
+  // Mudamos a chave para "v3" para forçar o Vercel KV a buscar dados frescos,
+  // ignorando arrays vazios que possam ter sido cacheados por engano antes.
+  const cacheKey = `grafo:v3:${cleanDocumento}`
 
   const cached = await kv.get<RelacaoGrafo[]>(cacheKey)
   if (cached) return cached
 
   try {
     const res = await fetch(
-      `https://grafo.minhareceita.org/relacoes/${cleanDocumento}`,
+      `https://grafo.minhareceita.org/${cleanDocumento}`,
       {
-        next: { revalidate: false },
+        cache: 'no-store', // 🔴 Ignora o cache persistente do fetch nativo do Next.js
+        headers: {
+          'Accept': 'application/json',
+          // 🔴 Muitas APIs bloqueiam requisições de servidores sem User-Agent definido
+          'User-Agent': 'MinhaAplicacao/1.0 (Integracao)', 
+        }
       }
     )
 
     if (!res.ok) {
-      // API fora do ar ou documento não encontrado: não há o que cachear,
-      // só sinalizamos indisponibilidade pro chamador decidir o que mostrar.
+      console.error(`[API Grafo] Erro ${res.status}: ${res.statusText}`)
       return null
     }
 
@@ -78,7 +85,8 @@ export async function getRelacoes(
     })
 
     return relacoes
-  } catch {
+  } catch (err) {
+    console.error(`[API Grafo] Exceção no fetch:`, err)
     return null
   }
 }
@@ -96,7 +104,7 @@ export async function getConexao(
 
   try {
     const res = await fetch(
-      `https://grafo.minhareceita.org/conexao/${origem}/${destino}`,
+      `https://grafo.minhareceita.org/${origem}/${destino}`,
       {
         next: { revalidate: false },
       }
